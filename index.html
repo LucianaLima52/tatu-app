@@ -33,6 +33,7 @@
   input[type="text"]{width:100%;padding:12px;border:1px solid #d9d9df;border-radius:12px}
   .kicker{font-size:12px;text-transform:uppercase;color:var(--muted);margin-top:14px}
   .footer{margin:24px 0 10px;text-align:center;color:#888;font-size:12px}
+  .start{display:inline-block;margin-top:8px}
 </style>
 </head>
 <body>
@@ -42,7 +43,14 @@
     <p>Responda algumas perguntas rápidas e descubra o desenho, o tamanho e o local perfeitos para o seu estilo.</p>
   </header>
 
-  <div id="app"></div>
+  <!-- Fallback visível: se algo travar, dá pra começar -->
+  <div id="app">
+    <div class="card">
+      <div class="title">Pronto(a) pra começar?</div>
+      <a class="btn primary start" href="#/q/1">Começar agora</a>
+      <noscript><p class="muted" style="margin-top:8px">Ative o JavaScript para responder o questionário.</p></noscript>
+    </div>
+  </div>
 
   <div class="footer">© <span id="year"></span> • Feito com carinho por Laís • Uberaba-MG</div>
 </div>
@@ -403,7 +411,7 @@
 
     // guarda-corpo: se a rota estiver quebrada, força /q/1
     if (route.page === 'q' && (route.step == null || !Number.isFinite(route.step) || route.step < 0 || route.step >= total)) {
-      location.replace('#/q/1');
+      location.hash = '#/q/1';
       return;
     }
 
@@ -554,23 +562,21 @@
     app.append(prog,card);
   }
 
-  // ===== INICIALIZAÇÃO ROBUSTA DA ROTA =====
-  document.getElementById("year").textContent=new Date().getFullYear();
+  // ===== INICIALIZAÇÃO ROBUSTA =====
+  const y = document.getElementById("year"); if (y) y.textContent=new Date().getFullYear();
 
-  function ensureFirstRoute(){
-    const h = (location.hash || '').replace(/^#/, '');
-    if (!h || h === '/' || h === '/q/' || h === '/q') {
-      location.replace('#/q/1'); // garante que hashchange dispare
-      return true;
-    }
-    return false;
+  // 1) ouvintes primeiro (garante render em qualquer cenário de navegação)
+  window.addEventListener('hashchange', ()=>{ try{ render(); }catch(e){ console.error(e); } });
+  window.addEventListener('popstate',  ()=>{ try{ render(); }catch(e){ console.error(e); } });
+  window.addEventListener('pageshow',  ()=>{ try{ render(); }catch(e){ console.error(e); } });
+
+  // 2) garante que sempre exista hash válido
+  if (!location.hash || location.hash === '#' || location.hash === '#/' || location.hash === '#/q' || location.hash === '#/q/') {
+    location.hash = '#/q/1';
   }
 
-  const changed = ensureFirstRoute();
-  if (!changed) { try { render(); } catch(e){ console.error(e); } }
-
-  // re-render sempre que o hash mudar
-  window.addEventListener('hashchange', () => { try { render(); } catch(e){ console.error(e); } });
+  // 3) primeira renderização (em timeout para garantir que o hash já foi aplicado)
+  setTimeout(()=>{ try{ render(); }catch(e){ console.error(e); } }, 0);
 
 })();
 </script>
