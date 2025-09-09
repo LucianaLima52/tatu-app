@@ -312,10 +312,12 @@ input[type="text"]{width:100%;padding:12px;border:1px solid #d9d9df;border-radiu
 
   function goToQuestion(idx) {
     step = Math.max(0, Math.min(total - 1, idx));
-    location.hash = `#/q/${step + 1}`;
+    history.pushState({ step }, '', `#/q/${step + 1}`);
+    render();
   }
   function goToResultado() {
-    location.hash = '#/resultado';
+    history.pushState({ done: true }, '', '#/resultado');
+    render();
   }
 
   // ===== UI =====
@@ -426,7 +428,8 @@ input[type="text"]{width:100%;padding:12px;border:1px solid #d9d9df;border-radiu
       q.options.forEach(opt=>{
         const selected=current.find(o=>o.label===opt.label);
         list.appendChild(el("button",{class:"btn"+(selected?" sel":""),onClick:()=>{
-          const arr=Array.isArray(answers[q.id])?[...answers[q.id]]:[]; const i=arr.findIndex(o=>o.label===opt.label);
+          const arr=Array.isArray(answers[q.id])?[...answers[q.id]]:[];
+          const i=arr.findIndex(o=>o.label===opt.label);
           if(i>=0) arr.splice(i,1); else arr.push(opt);
           answers[q.id]=arr; render();
         }}, opt.label));
@@ -445,15 +448,13 @@ input[type="text"]{width:100%;padding:12px;border:1px solid #d9d9df;border-radiu
 
   // ===== INICIALIZAÇÃO =====
   const y=document.getElementById("year"); if (y) y.textContent=new Date().getFullYear();
-
   window.addEventListener('hashchange', ()=>{ try{ render(); }catch(e){ console.error(e); } });
+  window.addEventListener('popstate',  ()=>{ try{ render(); }catch(e){ console.error(e); } });
   window.addEventListener('pageshow',  ()=>{ try{ render(); }catch(e){ console.error(e); } });
-
   if (!location.hash || location.hash==='#' || location.hash==='#/' || location.hash==='#/q' || location.hash==='#/q/') {
     location.hash = '#/q/1';
-  } else {
-    render();
   }
+  setTimeout(()=>{ try{ render(); }catch(e){ console.error(e); } }, 0);
 })();
 </script>
 </body>
