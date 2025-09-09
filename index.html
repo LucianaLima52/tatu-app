@@ -8,7 +8,7 @@
   :root{
     --bg:#f7f7f8; --card:#fff; --ink:#111; --muted:#666; --line:#e6e6e8;
     --radius:16px;
-    --accent:#7A8B55; /* Pantone 17-0336 TCX Moss Green (aprox.) */
+    --accent:#7A8B55;
     --accent-ink:#fff;
   }
   *{box-sizing:border-box}
@@ -51,7 +51,7 @@
 (function(){
   // ===== CONFIG =====
   const HOURLY = 150;                 // R$/hora (interno)
-  const FORMSPREE_ENDPOINT = "";      // opcional: cole seu endpoint do Formspree
+  const FORMSPREE_ENDPOINT = "";      // opcional: seu endpoint do Formspree
 
   // ===== UTIL =====
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -109,7 +109,7 @@
       options:[
         {label:"Fine Line — traços finos e minimalistas", tags:{prefStyle:"fineline"}},
         {label:"Blackwork — preto intenso e contrastes",  tags:{prefStyle:"blackwork"}},
-        {label:"Realismo",                                 tags:{prefStyle:"realismo"}},  // <- atualizado
+        {label:"Realismo",                                 tags:{prefStyle:"realismo"}},
       ]},
 
     { id:"universo", t:"Qual universo estético mais combina com você?", type:"single",
@@ -266,4 +266,313 @@
   function tone(persona){
     switch(persona){
       case"romantico":return{themeLine:"um registro de afeto e memória"};
-      case"rebelde":return{themeLine:"presença e atitude"}
+      case"rebelde":return{themeLine:"presença e atitude"};
+      case"mistico":return{themeLine:"significado e proteção"};
+      case"artistico":return{themeLine:"luz e sombra em arte pessoal"};
+      case"social":return{themeLine:"estilo alinhado à sua vibe"};
+      default:return{themeLine:"estilo que representa quem você é"};
+    }
+  }
+
+  function buildInspiration(tags){
+    const parts=[];
+    if(tags.astro==="agua") parts.push("linhas fluidas, composição com movimento e transições suaves");
+    if(tags.astro==="fogo") parts.push("contrastes intensos e direção de luz dramática para energia");
+    if(tags.astro==="terra") parts.push("texturas orgânicas (folhas, rochas) e sensação de estabilidade");
+    if(tags.astro==="ar") parts.push("composição leve/arejada e espaços negativos bem trabalhados");
+
+    if(tags.values==="autenticidade") parts.push("símbolos de liberdade/individualidade (pássaros, chaves, bússola)");
+    if(tags.values==="natureza") parts.push("elementos botânicos/animais em close para detalhes ricos");
+    if(tags.values==="fe") parts.push("simbologia discreta (São Bento, cruz sutil, olho protetor)");
+
+    if(tags.motive==="homenagem") parts.push("elementos pessoais do homenageado (data, objeto marcante ou caligrafia)");
+    if(tags.motive==="expressao") parts.push("composição autoral combinando referência fotográfica e texturas");
+    if(tags.motive==="atitude") parts.push("ângulos marcantes e enquadramento forte para imponência");
+
+    if(tags.music==="rock") parts.push("texturas granuladas, luz de palco ou referência simbólica sutil");
+    if(tags.music==="mpb") parts.push("orgânico e poético: plantas brasileiras, traços suaves");
+    if(tags.music==="pop") parts.push("ícone cultural minimalista integrado ao motivo principal");
+    if(tags.music==="rap") parts.push("contraste alto e elementos urbanos discretos");
+    if(tags.music==="classica") parts.push("referência a esculturas e tratamento de luz clássico");
+
+    return parts.length ? parts.join(". ") + "." : null;
+  }
+
+  function recommend(ans){
+    const tags={};
+    Object.values(ans).forEach(v=>{
+      if(!v) return;
+      if(Array.isArray(v)) v.forEach(o=>Object.assign(tags,o.tags||{}));
+      else Object.assign(tags, v.tags||{});
+    });
+
+    const persona=tags.persona||"artistico";
+    const universe=tags.universe;
+
+    let themes=[...(THEME_BY_PERSONA[persona]||THEME_BY_PERSONA.artistico)];
+    if(universe && CULTURE_MOD[universe]) themes=themes.concat(CULTURE_MOD[universe]);
+    if(tags.tribute==="pessoa") themes.unshift("retrato de pessoa querida");
+    if(tags.tribute==="pet")    themes.unshift("retrato do seu pet");
+    if(tags.tribute==="fe")     themes.unshift("símbolo de fé/proteção");
+
+    // locais
+    let visKey=tags.vis||"media";
+    let placements=[...(PLACEMENTS[visKey]||PLACEMENTS.media)];
+    if(tags.first) placements=["antebraço interno","panturrilha","ombro",...placements];
+    if(tags.volu==="alta") placements=[...LESS_SEEN,...placements];
+    if(tags.work==="formal" && visKey!=="baixa") placements=[...LESS_SEEN,...PLACEMENTS.baixa];
+    if(tags.pain==="baixa") placements=[...placements.filter(p=>LOW_PAIN.some(lp=>p.includes(lp))),...placements];
+
+    const areas=(ans["areas"]||[]).map(o=>o.tags?.area);
+    if(areas.length && !areas.includes("nenhuma")){
+      const map={ braco:["antebraço","bíceps","ombro"], perna:["coxa","panturrilha"], costas:["costas"],
+                  peito:["peito","tórax"], costela:["costela","lateral"], mao:["mão","punho"], pescoco:["pescoço"] };
+      let filtered = placements.filter(p=>areas.some(a=>(map[a]||[]).some(kw=>p.includes(kw))));
+      if (!filtered.length) {
+        const uniq = [];
+        areas.forEach(a => (map[a]||[]).forEach(p => { if(!uniq.includes(p)) uniq.push(p); }));
+        placements = uniq.length ? uniq : placements;
+      } else {
+        placements = filtered;
+      }
+    }
+
+    // tamanho
+    const inv=ans["investimento"]?.tags || {budgetMin:600,budgetMax:1200};
+    const hours=hoursFromBudget(inv.budgetMin,inv.budgetMax);
+    const multi=ans["tempoSessao"]?.tags?.session==="multi" || inv.budgetMin>=2500;
+    const size=sizeFromTime(hours,multi);
+    const cm = SIZE_CM[size.size];
+
+    // justificativa local/tamanho
+    const just = [];
+    if(tags.first) just.push("boa escolha para primeira tatuagem");
+    if(tags.pain==="baixa") just.push("região de menor sensibilidade");
+    if(tags.work==="formal") just.push("ajuda a manter discrição no trabalho");
+    if(tags.volu==="alta") just.push("fica fora do campo de visão constante");
+    if(tags.vis==="alta") just.push("boa visibilidade no dia a dia");
+    if(tags.presence==="impactante") just.push("garante presença visual");
+    const justification = `${just.length? just.join(" · "):"equilíbrio entre conforto e estética"} — tamanho aproximado ${cm} (${size.label}).`;
+
+    const inspiration = buildInspiration(tags);
+
+    return {
+      persona,
+      themes:[...new Set(themes)].slice(0,4),
+      placementPrimary:placements[0] || "antebraço interno",
+      sizeLabel:size.label,
+      sizeCm:cm,
+      justification,
+      inspiration,
+      tone:tone(persona),
+      tags
+    };
+  }
+
+  // ===== ROTEAMENTO =====
+  let step = 0;
+  const answers = {};
+  const total = Q.length;
+
+  function parseRoute() {
+    const h = (location.hash || '').replace(/^#/, '');
+    if (h.startsWith('/q/')) {
+      const n = Math.max(1, Math.min(total, parseInt(h.split('/')[2] || '1', 10)));
+      return { page: 'q', step: n - 1 };
+    }
+    if (h === '/resultado') return { page: 'resultado' };
+    return { page: 'q', step: 0 }; // padrão
+  }
+
+  function goToQuestion(idx) {
+    step = Math.max(0, Math.min(total - 1, idx));
+    history.pushState({ step }, '', `#/q/${step + 1}`);
+    render();
+  }
+
+  function goToResultado() {
+    history.pushState({ done: true }, '', '#/resultado');
+    render();
+  }
+
+  // ===== UI =====
+  const app=document.getElementById("app");
+
+  function render(){
+    const route = parseRoute();
+
+    // guarda-corpo: se a rota estiver quebrada, força /q/1
+    if (route.page === 'q' && (route.step == null || !Number.isFinite(route.step) || route.step < 0 || route.step >= total)) {
+      location.replace('#/q/1');
+      return;
+    }
+
+    app.innerHTML="";
+
+    if (route.page === 'resultado') {
+      // === PÁGINA DE RESULTADO ===
+      const r = recommend(answers);
+      const nome = (answers.nome?.value || "Você");
+
+      const page = el("div",{class:"card"},
+        el("div",{class:"title"}, `${nome}, sua sugestão personalizada 🎨`),
+
+        el("div",{class:"kicker"},"Tema recomendado"),
+        el("div",{style:"font-size:18px;margin-top:4px"}, `${r.themes[0]} — ${r.tone.themeLine}.`),
+        r.themes.slice(1).length
+          ? el("div",{class:"muted",style:"margin-top:4px"}, `Alternativas: ${r.themes.slice(1,4).join(" · ")}`)
+          : null,
+
+        el("div",{class:"kicker"},"Local ideal"),
+        el("div",{style:"font-size:18px;margin-top:4px"}, r.placementPrimary),
+        el("div",{class:"muted",style:"margin-top:6px"}, `Justificativa: ${r.justification}`),
+
+        r.inspiration ? el("div",{},
+          el("div",{class:"kicker"},"Inspiração adicional"),
+          el("div",{style:"font-size:16px;margin-top:4px"}, r.inspiration)
+        ) : null,
+
+        el("div",{class:"row row2",style:"margin-top:14px"},
+          el("a",{class:"btn",href:"https://wa.me/5534999199962",target:"_blank",rel:"noreferrer"},
+            "Quero conversar sobre minha ideia no WhatsApp"),
+          el("button",{class:"btn",id:"copy"}, "Copiar sugestão")
+        ),
+
+        el("div",{class:"card",style:"margin-top:14px;border-color:#efefef"},
+          el("div",{}, el("strong",{},"Quer receber inspirações de desenhos"),
+            " para te ajudar na decisão? Deixe seu WhatsApp ou e-mail. ",
+            el("em",{},"É só para inspirar, sem compromisso.")),
+          el("div",{class:"row",style:"margin-top:8px"},
+            el("input",{id:"lead",type:"text",placeholder:"(DDD) WhatsApp ou e-mail"}),
+            el("button",{class:"btn",id:"send"},"Quero receber inspirações")
+          ),
+          el("div",{class:"muted",style:"margin-top:6px"},"Sem spam. Só inspirações úteis.")
+        ),
+
+        el("div",{class:"actions",style:"margin-top:16px"},
+          el("button",{class:"btn",onClick:()=>goToQuestion(total-1)},"Voltar para a última pergunta")
+        )
+      );
+
+      app.append(page);
+
+      // Comportamentos da página de resultado
+      const txt = `${nome} — Tema: ${r.themes[0]} | Local: ${r.placementPrimary} | Tamanho: ${r.sizeLabel} (${r.sizeCm})`;
+      document.getElementById("copy").addEventListener("click", () =>
+        navigator.clipboard.writeText(txt)
+          .then(()=>alert("Sugestão copiada!"))
+          .catch(()=>alert("Copie manualmente: "+txt))
+      );
+
+      const endpoint = FORMSPREE_ENDPOINT || '';
+      document.getElementById("send").addEventListener("click", async ()=>{
+        const contato = (document.getElementById("lead").value||'').trim();
+        if(!contato){ alert("Preencha seu WhatsApp ou e-mail."); return; }
+        const leads = JSON.parse(localStorage.getItem("leads")||"[]");
+        leads.push({nome,contato,ts:Date.now()});
+        localStorage.setItem("leads",JSON.stringify(leads));
+        if(endpoint){
+          try{
+            await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},
+              body:JSON.stringify({nome,contato,perfil:r.persona,universo:(r.tags.universe||""),presenca:(r.tags.presence||"")})
+            });
+            alert("Contato registrado! Você receberá inspirações ✨");
+            document.getElementById("lead").value="";
+            return;
+          }catch(e){}
+        }
+        alert("Contato salvo. Se quiser, depois conecto ao Formspree para chegar por e-mail.");
+      });
+
+      return; // encerra render da página de resultado
+    }
+
+    // === PÁGINAS DE PERGUNTAS ===
+    step = route.step ?? step;
+    const q = Q[step];
+
+    const prog=el("div",{class:"prog"}, el("i",{style:`width:${Math.round(((step+1)/total)*100)}%`}));
+    const card=el("div",{class:"card"},
+      el("div",{class:"title"}, q.t),
+      q.helper?el("div",{class:"muted"}, q.helper):null,
+    );
+
+    if(q.type==="text"){
+      const input=el("input",{type:"text",placeholder:q.ph||"",value:answers[q.id]?.value||""});
+      input.addEventListener("input", ()=> answers[q.id]={value:input.value,tags:{}});
+
+      const actions=el("div",{class:"actions"},
+        el("button",{class:"btn",onClick:()=>goToQuestion(step-1)}, "Voltar"),
+        el("button",{class:"btn primary",onClick:()=>{
+          if(q.req && !input.value.trim()){ alert("Digite seu nome"); return; }
+          if(input.value.trim()) answers[q.id]={value:input.value.trim(),tags:{}};
+          if (step === total-1) goToResultado(); else goToQuestion(step+1);
+        }},"Avançar"),
+      );
+      card.append(el("div",{class:"row"},input), actions);
+
+    } else if(q.type==="single"){
+      const selected = answers[q.id]?.__chosen ?? null;
+      const list=el("div",{class:"row row2"});
+      q.options.forEach((opt,idx)=>{
+        const isSel = selected===idx;
+        list.appendChild(
+          el("button",{class:"btn"+(isSel?" sel":""),onClick:()=>{ answers[q.id]={...opt,__chosen:idx}; render(); }}, opt.label)
+        );
+      });
+      const canNext = answers[q.id] && answers[q.id].__chosen != null;
+      const actions=el("div",{class:"actions"},
+        el("button",{class:"btn",onClick:()=>goToQuestion(step-1)}, "Voltar"),
+        el("button",{class:"btn primary",disabled:!canNext,onClick:()=>{
+          if(!canNext) return;
+          if (step === total-1) goToResultado(); else goToQuestion(step+1);
+        }}, "Avançar")
+      );
+      card.append(list, actions);
+
+    } else if(q.type==="multi"){
+      const current = Array.isArray(answers[q.id])?answers[q.id]:[];
+      const list=el("div",{class:"row row2"});
+      q.options.forEach(opt=>{
+        const selected=current.find(o=>o.label===opt.label);
+        list.appendChild(el("button",{class:"btn"+(selected?" sel":""),onClick:()=>{
+          const arr=Array.isArray(answers[q.id])?[...answers[q.id]]:[];
+          const i=arr.findIndex(o=>o.label===opt.label);
+          if(i>=0) arr.splice(i,1); else arr.push(opt);
+          answers[q.id]=arr; render();
+        }}, opt.label));
+      });
+      const actions=el("div",{class:"actions"},
+        el("button",{class:"btn",onClick:()=>goToQuestion(step-1)}, "Voltar"),
+        el("button",{class:"btn primary",onClick:()=>{
+          if (step === total-1) goToResultado(); else goToQuestion(step+1);
+        }}, "Avançar"),
+      );
+      card.append(list,actions);
+    }
+
+    app.append(prog,card);
+  }
+
+  // ===== INICIALIZAÇÃO ROBUSTA DA ROTA =====
+  document.getElementById("year").textContent=new Date().getFullYear();
+
+  function ensureFirstRoute(){
+    const h = (location.hash || '').replace(/^#/, '');
+    if (!h || h === '/' || h === '/q/' || h === '/q') {
+      location.replace('#/q/1'); // garante que hashchange dispare
+      return true;
+    }
+    return false;
+  }
+
+  const changed = ensureFirstRoute();
+  if (!changed) { try { render(); } catch(e){ console.error(e); } }
+
+  // re-render sempre que o hash mudar
+  window.addEventListener('hashchange', () => { try { render(); } catch(e){ console.error(e); } });
+
+})();
+</script>
+</body>
+</html>
