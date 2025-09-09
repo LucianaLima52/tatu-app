@@ -381,9 +381,8 @@
     const r = recommend(answers);
     const nome = (answers.nome?.value||"Você");
 
-    const w = window.open("", "_blank");
-    const html = `
-<!doctype html><html lang="pt-br"><head>
+    const html =
+`<!doctype html><html lang="pt-br"><head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Sugestão personalizada</title>
@@ -434,7 +433,7 @@
     </div>
   </div>
 </div>
-<script>
+<scr` + `ipt>
   const txt = ${JSON.stringify(`${nome} — Tema: ${r.themes[0]} | Local: ${r.placementPrimary} | Tamanho: ${r.sizeLabel} (${r.sizeCm})`)};
   document.getElementById("copy").addEventListener("click", ()=>navigator.clipboard.writeText(txt).then(()=>alert("Sugestão copiada!")).catch(()=>alert("Copie manualmente: "+txt)));
   const endpoint = ${FORMSPREE_ENDPOINT ? `"${FORMSPREE_ENDPOINT}"` : "''"};
@@ -455,10 +454,23 @@
     }
     alert("Contato salvo. Se quiser, depois conecto ao Formspree para chegar por e-mail.");
   });
-</script>
+</scr` + `ipt>
 </body></html>`;
-    if (w) { w.document.open(); w.document.write(html); w.document.close(); }
-    else { document.body.innerHTML = html; } // fallback se popup for bloqueado
+
+    let w = window.open("", "_blank");
+    if (w && w.document) {
+      w.document.open(); w.document.write(html); w.document.close();
+    } else {
+      // tentativa alternativa (caso pop-up bloqueado)
+      const blob = new Blob([html], {type:"text/html"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
   }
 
   function render(){
