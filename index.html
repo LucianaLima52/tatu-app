@@ -1,71 +1,69 @@
 <!doctype html>
 <html lang="pt-br">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Qual é a tatuagem certa pra você?</title>
-  <style>
-    :root{
-      --bg:#f7f7f8; --card:#fff; --ink:#111; --muted:#666; --line:#e6e6e8;
-      --radius:16px; --primary:#8A9A5B; /* Pantone 17-0336 TCX Moss Green (aprox) */
-      --primary-hover:#7b8b51;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial;background:var(--bg);color:var(--ink)}
-    .wrap{max-width:860px;margin:0 auto;padding:24px}
-    header h1{font-size:clamp(22px,2.8vw,34px);margin:10px 0 4px}
-    header p{color:var(--muted);margin:0 0 12px;font-size:clamp(14px,2vw,18px)}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 6px 16px rgba(0,0,0,.04);padding:20px}
-    .row{display:grid;grid-template-columns:1fr;gap:12px}
-    @media (min-width:720px){.row2{grid-template-columns:1fr 1fr}}
-    .title{font-size:20px;margin:0 0 6px}
-    .muted{color:var(--muted);font-size:13px}
-    .btn{appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:12px 14px;text-align:left;cursor:pointer;transition:.2s}
-    .btn:hover{border-color:#111}
-    .btn.primary{text-align:center;background:var(--primary);color:#fff;border-color:var(--primary)}
-    .btn.primary:hover{background:var(--primary-hover);border-color:var(--primary-hover)}
-    .btn.block{width:100%}
-    .actions{display:flex;justify-content:space-between;gap:10px;margin-top:10px}
-    .prog{height:8px;background:#e9e9ec;border-radius:999px;overflow:hidden;margin:10px 0 16px}
-    .prog>i{display:block;height:100%;background:var(--primary);width:0}
-    input[type="text"]{width:100%;padding:12px;border:1px solid #d9d9df;border-radius:12px}
-    .kicker{font-size:12px;text-transform:uppercase;color:var(--muted);margin-top:14px}
-    .footer{margin:24px 0 10px;text-align:center;color:#888;font-size:12px}
-    .btn.is-selected{border-color:#111}
-    .btn.is-disabled{opacity:.5;pointer-events:none}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Qual é a tatuagem certa pra você?</title>
+<style>
+  :root{
+    --bg:#f7f7f8; --card:#fff; --ink:#111; --muted:#666; --line:#e6e6e8;
+    --radius:16px;
+    --accent:#7A8B55; /* Pantone 17-0336 TCX Moss Green (aprox.) */
+    --accent-ink:#fff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:860px;margin:0 auto;padding:24px}
+  header h1{font-size:clamp(22px,2.8vw,34px);margin:10px 0 4px}
+  header p{color:var(--muted);margin:0 0 12px;font-size:clamp(14px,2vw,18px)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 6px 16px rgba(0,0,0,.04);padding:20px}
+  .row{display:grid;grid-template-columns:1fr;gap:12px}
+  @media (min-width:720px){.row2{grid-template-columns:1fr 1fr}}
+  .title{font-size:20px;margin:0 0 6px}
+  .muted{color:var(--muted);font-size:13px}
+  .btn{appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:12px 14px;text-align:left;cursor:pointer;transition:.2s}
+  .btn:hover{border-color:#111}
+  .btn.primary{text-align:center;background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .btn.block{width:100%}
+  .btn.sel{border-color:var(--accent)}
+  .actions{display:flex;justify-content:space-between;gap:10px;margin-top:10px}
+  .prog{height:8px;background:#e9e9ec;border-radius:999px;overflow:hidden;margin:10px 0 16px}
+  .prog>i{display:block;height:100%;background:var(--accent);width:0}
+  input[type="text"]{width:100%;padding:12px;border:1px solid #d9d9df;border-radius:12px}
+  .kicker{font-size:12px;text-transform:uppercase;color:var(--muted);margin-top:14px}
+  .footer{margin:24px 0 10px;text-align:center;color:#888;font-size:12px}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>Qual é a tatuagem certa pra você?</h1>
-      <p>Responda algumas perguntas rápidas e descubra o desenho, o tamanho e o local perfeitos para o seu estilo.</p>
-    </header>
+<div class="wrap">
+  <header>
+    <h1>Qual é a tatuagem certa pra você?</h1>
+    <p>Responda algumas perguntas rápidas e descubra o desenho, o tamanho e o local perfeitos para o seu estilo.</p>
+  </header>
 
-    <div id="app"></div>
+  <div id="app"></div>
 
-    <div class="footer">© <span id="year"></span> • Feito com carinho por Laís • Uberaba-MG</div>
-  </div>
+  <div class="footer">© <span id="year"></span> • Feito com carinho por Laís • Uberaba-MG</div>
+</div>
 
 <script>
 (function(){
   // ===== CONFIG =====
-  const HOURLY = 150;                    // R$/hora (interno)
-  const FORMSPREE_ENDPOINT = "";         // Cole aqui seu endpoint do Formspree (opcional)
-  const OPEN_RESULT_IN_NEW_TAB = true;   // abre o resultado em nova aba ao concluir (pedido)
+  const HOURLY = 150;                 // R$/hora (interno)
+  const FORMSPREE_ENDPOINT = "";      // opcional: cole seu endpoint do Formspree
 
   // ===== UTIL =====
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const el = (tag, attrs = {}, ...kids) => {
     const n = document.createElement(tag);
-    if (tag === "button" && !("type" in attrs)) n.setAttribute("type", "button"); // nunca submeter
-    Object.entries(attrs).forEach(([k, v]) => {
-      if (k === "class") n.className = v;
-      else if (k === "html") n.innerHTML = v;
+    if (tag === "button" && !("type" in attrs)) n.setAttribute("type","button"); // nunca submit
+    Object.entries(attrs).forEach(([k,v])=>{
+      if (k==="class") n.className=v;
+      else if (k==="html") n.innerHTML=v;
       else if (k.startsWith("on")) n.addEventListener(k.slice(2).toLowerCase(), v);
-      else n.setAttribute(k, v);
+      else n.setAttribute(k,v);
     });
-    kids.forEach(k => { if (k == null) return; n.appendChild(typeof k==="string"?document.createTextNode(k):k); });
+    kids.forEach(k=>{ if(k==null) return; n.appendChild(typeof k==="string"?document.createTextNode(k):k); });
     return n;
   };
 
@@ -75,26 +73,26 @@
 
     { id:"experiencia", t:"Você já tem tatuagens ou seria a sua primeira?", type:"single",
       options:[
-        {label:"Será minha primeira – ainda tenho algumas dúvidas e receios.", tags:{first:true}},
-        {label:"Já tenho – quero complementar ou fazer algo novo.",           tags:{first:false}},
+        {label:"Será minha primeira — ainda tenho algumas dúvidas e receios.", tags:{first:true}},
+        {label:"Já tenho — quero complementar ou fazer algo novo.",           tags:{first:false}},
       ]},
 
     { id:"receio", t:"Qual é o seu maior receio em relação à tatuagem?", type:"single",
       options:[
-        {label:"Arrependimento",  tags:{fear:"arrependimento"}},
-        {label:"Julgamento",      tags:{fear:"julgamento"}},
-        {label:"Dor",             tags:{fear:"dor"}},
-        {label:"Custo",           tags:{fear:"custo"}},
-        {label:"Nenhum",          tags:{fear:"nenhum"}},
+        {label:"Arrependimento",tags:{fear:"arrependimento"}},
+        {label:"Julgamento",    tags:{fear:"julgamento"}},
+        {label:"Dor",           tags:{fear:"dor"}},
+        {label:"Custo",         tags:{fear:"custo"}},
+        {label:"Nenhum",        tags:{fear:"nenhum"}},
       ]},
 
     { id:"perfil", t:"Qual dessas descrições mais combina com você?", type:"single",
       options:[
-        {label:"Autêntico(a) / Criativo(a) – tatuagem como arte no corpo.", tags:{persona:"artistico"}},
-        {label:"Romântico(a) / Emocional – valorizo sentimentos e memórias.", tags:{persona:"romantico"}},
-        {label:"Rebelde / Questionador(a) – força e atitude.", tags:{persona:"rebelde"}},
-        {label:"Espiritual / Místico(a) – conexão e proteção.", tags:{persona:"mistico"}},
-        {label:"Social / Estético(a) – moda, cultura pop, identidade de grupo.", tags:{persona:"social"}},
+        {label:"Autêntico(a) / Criativo(a) — tatuagem como arte no corpo.", tags:{persona:"artistico"}},
+        {label:"Romântico(a) / Emocional — valorizo sentimentos e memórias.", tags:{persona:"romantico"}},
+        {label:"Rebelde / Questionador(a) — força e atitude.", tags:{persona:"rebelde"}},
+        {label:"Espiritual / Místico(a) — conexão e proteção.", tags:{persona:"mistico"}},
+        {label:"Social / Estético(a) — moda, cultura pop, identidade de grupo.", tags:{persona:"social"}},
       ]},
 
     { id:"comunicar", t:"O que você mais quer comunicar com essa tatuagem?", type:"single",
@@ -106,10 +104,10 @@
         {label:"Estética",  tags:{motive:"estetica"}},
       ]},
 
-    { id:"estilo", t:"Qual estilo de tatuagem mais combina com você? (só para calibrar linguagem)", type:"single",
+    { id:"estilo", t:"Qual estilo mais combina com você? (calibra linguagem)", type:"single",
       options:[
-        {label:"Fine Line – traços finos e minimalistas", tags:{prefStyle:"fineline"}},
-        {label:"Blackwork – preto intenso e contrastes",  tags:{prefStyle:"blackwork"}},
+        {label:"Fine Line — traços finos e minimalistas", tags:{prefStyle:"fineline"}},
+        {label:"Blackwork — preto intenso e contrastes",  tags:{prefStyle:"blackwork"}},
         {label:"Realismo Preto e Branco",                 tags:{prefStyle:"realismo"}},
       ]},
 
@@ -138,9 +136,9 @@
 
     { id:"volubilidade", t:"Você enjoa fácil de coisas visuais?", type:"single",
       options:[
-        {label:"Sim – prefiro não ver o tempo todo", tags:{volu:"alta"}},
-        {label:"Mais ou menos",                       tags:{volu:"media"}},
-        {label:"Não",                                 tags:{volu:"baixa"}},
+        {label:"Sim — prefiro não ver o tempo todo", tags:{volu:"alta"}},
+        {label:"Mais ou menos",                      tags:{volu:"media"}},
+        {label:"Não",                                tags:{volu:"baixa"}},
       ]},
 
     { id:"dor", t:"Como você lida com dor durante procedimentos?", type:"single",
@@ -160,9 +158,9 @@
 
     { id:"diaSemana", t:"Dias preferidos para tatuar", type:"single",
       options:[
-        {label:"Dias úteis",      tags:{day:"uteis"}},
-        {label:"Finais de semana",tags:{day:"fds"}},
-        {label:"Qualquer",        tags:{day:"qualquer"}},
+        {label:"Dias úteis",       tags:{day:"uteis"}},
+        {label:"Finais de semana", tags:{day:"fds"}},
+        {label:"Qualquer",         tags:{day:"qualquer"}},
       ]},
 
     { id:"periodoDia", t:"Período do dia preferido", type:"single",
@@ -173,7 +171,7 @@
         {label:"Indiferente", tags:{period:"indiferente"}},
       ]},
 
-    { id:"investimento", t:"Qual faixa de investimento você considera? (interno, sem mostrar preços)", type:"single",
+    { id:"investimento", t:"Qual faixa de investimento você considera? (interno, não exibimos valores)", type:"single",
       options:[
         {label:"R$ 150 – R$ 600",     tags:{budgetMin:150,budgetMax:600}},
         {label:"R$ 600 – R$ 1.200",   tags:{budgetMin:600,budgetMax:1200}},
@@ -183,11 +181,11 @@
 
     { id:"homenagem", t:"Sua tatuagem seria uma homenagem?", type:"single",
       options:[
-        {label:"Pessoa querida", tags:{tribute:"pessoa"}},
-        {label:"Pet",            tags:{tribute:"pet"}},
-        {label:"Fé/Espiritualidade", tags:{tribute:"fe"}},
-        {label:"Talvez",         tags:{tribute:"talvez"}},
-        {label:"Não",            tags:{tribute:"nao"}},
+        {label:"Pessoa querida",      tags:{tribute:"pessoa"}},
+        {label:"Pet",                 tags:{tribute:"pet"}},
+        {label:"Fé/Espiritualidade",  tags:{tribute:"fe"}},
+        {label:"Talvez",              tags:{tribute:"talvez"}},
+        {label:"Não",                 tags:{tribute:"nao"}},
       ]},
 
     { id:"presenca", t:"Qual presença você deseja?", type:"single",
@@ -220,10 +218,10 @@
 
     { id:"valores", t:"Valores/simbologia (opcional)", type:"single",
       options:[
-        {label:"Sem símbolos",          tags:{values:null}},
-        {label:"Autenticidade",         tags:{values:"autenticidade"}},
-        {label:"Natureza",              tags:{values:"natureza"}},
-        {label:"Fé",                    tags:{values:"fe"}},
+        {label:"Sem símbolos",   tags:{values:null}},
+        {label:"Autenticidade",  tags:{values:"autenticidade"}},
+        {label:"Natureza",       tags:{values:"natureza"}},
+        {label:"Fé",             tags:{values:"fe"}},
       ]},
 
     { id:"musica", t:"Música/cultura influencia? (opcional)", type:"single",
@@ -252,83 +250,51 @@
     mitologia:["medusa/greco-romano","guerreiro(a) mitológico(a)"],
     retrato:["retrato humano","close dramático"],
   };
-  const PLACEMENTS = {
-    alta:["antebraço externo","panturrilha","antebraço interno"],
-    media:["bíceps","coxa","ombro"],
-    baixa:["costela","tórax/peito","alta das costas"],
-  };
+  const PLACEMENTS = { alta:["antebraço externo","panturrilha","antebraço interno"], media:["bíceps","coxa","ombro"], baixa:["costela","tórax/peito","alta das costas"] };
   const LESS_SEEN=["costela","alta das costas","lateral de coxa"];
   const LOW_PAIN=["antebraço","coxa","panturrilha","ombro"];
+  const SIZE_CM = { pequeno:"6–9 cm", medio:"12–18 cm", grande:"20–30 cm", projeto:"área maior em várias sessões (40+ cm no total por área)" };
 
   const hoursFromBudget=(min,max)=>clamp(Math.round(((min+max)/2)/HOURLY),1,24);
   function sizeFromTime(h,multi=false){
-    if(multi||h>=8) return {size:"projeto",label:"Projeto (várias sessões)"};
+    if(multi||h>=8) return {size:"projeto",label:"Projeto"};
     if(h>=4) return {size:"grande",label:"Grande"};
     if(h>=2) return {size:"medio",label:"Médio"};
     return {size:"pequeno",label:"Pequeno"};
   }
-  function cmForSizeLabel(lbl){
-    switch(lbl){
-      case "Pequeno": return "≈ 5–8 cm";
-      case "Médio":   return "≈ 10–15 cm";
-      case "Grande":  return "≈ 16–25 cm";
-      default:        return "maior que 25 cm (múltiplas sessões)";
-    }
-  }
   function tone(persona){
     switch(persona){
-      case"romantico":return{themeLine:"um registro atemporal de afeto e memória"};
+      case"romantico":return{themeLine:"um registro de afeto e memória"};
       case"rebelde":return{themeLine:"presença e atitude"};
       case"mistico":return{themeLine:"significado e proteção"};
       case"artistico":return{themeLine:"luz e sombra em arte pessoal"};
-      case"social":return{themeLine:"estilo que conversa com a sua vibe"};
+      case"social":return{themeLine:"estilo alinhado à sua vibe"};
       default:return{themeLine:"estilo que representa quem você é"};
     }
   }
-  function reasonForPlacement(tags){
-    const bits=[];
-    if(tags.first) bits.push("bom para primeira tatuagem (pele mais plana e cicatrização tranquila)");
-    if(tags.pain==="baixa") bits.push("área com menor sensibilidade");
-    if(tags.work==="formal"||tags.vis==="baixa") bits.push("discreto no dia a dia");
-    if(tags.volu==="alta") bits.push("você não o vê o tempo todo");
-    if(!bits.length) bits.push("equilibra estética e conforto");
-    return bits.join("; ");
-  }
-  function reasonForSize(tags,hours,sizeLabel){
-    const parts=[];
-    if(tags.session==="multi"||hours>=8) parts.push("como você topa várias sessões, dá para trabalhar áreas maiores");
-    else if(hours<=2) parts.push("mantém a sessão confortável e com boa definição");
-    else parts.push("permite detalhamento sem estender demais a sessão");
-    if(tags.budgetMin) parts.push("compatível com sua faixa de investimento");
-    return parts.join("; ");
-  }
 
-  function buildInspirationText(tags, prefStyle){
-    const ideas=[];
-    // baseadas em astro/valores
-    if(tags.astro==="agua") ideas.push("elementos fluidos (ondas, rios, neblina suave)");
-    if(tags.astro==="fogo") ideas.push("traços com energia (chamas estilizadas, brilhos)");
-    if(tags.astro==="terra") ideas.push("texturas orgânicas (folhas, rochas, montanhas)");
-    if(tags.astro==="ar") ideas.push("composição leve (pássaros, nuvens, movimento de vento)");
-    if(tags.values==="autenticidade") ideas.push("símbolos de liberdade (linhas soltas, composições assimétricas)");
-    if(tags.values==="natureza") ideas.push("flora/fauna discretas integradas ao tema");
-    if(tags.values==="fe") ideas.push("simbologia de fé minimalista (datilhos, cruz sutil, São Bento)");
-    // música/cultura
-    if(tags.music==="rock") ideas.push("microelementos de rock (palheta, raio, pauta discreta)");
-    if(tags.music==="mpb") ideas.push("toques orgânicos (folhas, violão sutil, textura aquarelada)");
-    if(tags.music==="pop") ideas.push("acabamentos limpos e modernos");
-    if(tags.music==="rap") ideas.push("geometrias fortes e ritmo visual");
-    if(tags.music==="classica") ideas.push("notas discretas ou ornamentos clássicos");
-    // homenagem
-    if(tags.tribute==="pessoa") ideas.push("iniciais/datas em tipografia fina ou coordenadas do momento especial");
-    if(tags.tribute==="pet") ideas.push("nome/pegada estilizada integrados");
-    // preferência de estilo
-    if(prefStyle==="fineline") ideas.push("linhas finas, respiro e composição minimalista");
-    if(prefStyle==="blackwork") ideas.push("contraste forte, massas de preto e textura de sombreamento");
-    if(prefStyle==="realismo") ideas.push("volumes suaves, foco em luz e sombra");
-    return ideas.length
-      ? "Para enriquecer: " + ideas.slice(0,6).join("; ") + "."
-      : "Podemos adicionar pequenos elementos que contem sua história (iniciais, datas, símbolos discretos) mantendo a composição limpa.";
+  function buildInspiration(tags){
+    const parts=[];
+    if(tags.astro==="agua") parts.push("linhas fluidas, composição com movimento e transições suaves");
+    if(tags.astro==="fogo") parts.push("contrastes intensos e direção de luz dramática para energia");
+    if(tags.astro==="terra") parts.push("texturas orgânicas (folhas, rochas) e sensação de estabilidade");
+    if(tags.astro==="ar") parts.push("composição leve/arejada e espaços negativos bem trabalhados");
+
+    if(tags.values==="autenticidade") parts.push("símbolos de liberdade/individualidade (pássaros, chaves, bússola)");
+    if(tags.values==="natureza") parts.push("elementos botânicos/animais em close para detalhes ricos");
+    if(tags.values==="fe") parts.push("simbologia discreta (São Bento, cruz sutil, olho protetor)");
+
+    if(tags.motive==="homenagem") parts.push("elementos pessoais do homenageado (data, objeto marcante ou caligrafia)");
+    if(tags.motive==="expressao") parts.push("composição autoral combinando referência fotográfica e texturas");
+    if(tags.motive==="atitude") parts.push("ângulos marcantes e enquadramento forte para imponência");
+
+    if(tags.music==="rock") parts.push("texturas granuladas, luz de palco ou referência simbólica sutil");
+    if(tags.music==="mpb") parts.push("orgânico e poético: plantas brasileiras, traços suaves");
+    if(tags.music==="pop") parts.push("ícone cultural minimalista integrado ao motivo principal");
+    if(tags.music==="rap") parts.push("contraste alto e elementos urbanos discretos");
+    if(tags.music==="classica") parts.push("referência a esculturas e tratamento de luz clássico");
+
+    return parts.length ? parts.join(". ") + "." : null;
   }
 
   function recommend(ans){
@@ -338,127 +304,222 @@
       if(Array.isArray(v)) v.forEach(o=>Object.assign(tags,o.tags||{}));
       else Object.assign(tags, v.tags||{});
     });
+
     const persona=tags.persona||"artistico";
     const universe=tags.universe;
-    const prefStyle=tags.prefStyle||null;
 
     let themes=[...(THEME_BY_PERSONA[persona]||THEME_BY_PERSONA.artistico)];
     if(universe && CULTURE_MOD[universe]) themes=themes.concat(CULTURE_MOD[universe]);
-    if(tags.tribute==="pessoa") themes.unshift("retrato realista de pessoa querida");
-    if(tags.tribute==="pet") themes.unshift("retrato realista do seu pet");
-    if(tags.tribute==="fe") themes.unshift("símbolo de fé/proteção");
+    if(tags.tribute==="pessoa") themes.unshift("retrato de pessoa querida");
+    if(tags.tribute==="pet")    themes.unshift("retrato do seu pet");
+    if(tags.tribute==="fe")     themes.unshift("símbolo de fé/proteção");
 
-    // placements
+    // locais
     let visKey=tags.vis||"media";
     let placements=[...(PLACEMENTS[visKey]||PLACEMENTS.media)];
     if(tags.first) placements=["antebraço interno","panturrilha","ombro",...placements];
     if(tags.volu==="alta") placements=[...LESS_SEEN,...placements];
     if(tags.work==="formal" && visKey!=="baixa") placements=[...LESS_SEEN,...PLACEMENTS.baixa];
-    if(tags.pain==="baixa"){
-      placements=[ ...placements.filter(p=>LOW_PAIN.some(lp=>p.includes(lp))), ...placements ];
-    }
+    if(tags.pain==="baixa") placements=[...placements.filter(p=>LOW_PAIN.some(lp=>p.includes(lp))),...placements];
+
     const areas=(ans["areas"]||[]).map(o=>o.tags?.area);
     if(areas.length && !areas.includes("nenhuma")){
-      const map={ braco:["antebraço","bíceps","ombro"], perna:["coxa","panturrilha"],
-                  costas:["costas"], peito:["peito","tórax"], costela:["costela","lateral"],
-                  mao:["mão","punho"], pescoco:["pescoço"] };
+      const map={ braco:["antebraço","bíceps","ombro"], perna:["coxa","panturrilha"], costas:["costas"],
+                  peito:["peito","tórax"], costela:["costela","lateral"], mao:["mão","punho"], pescoco:["pescoço"] };
       placements=placements.filter(p=>areas.some(a=>(map[a]||[]).some(kw=>p.includes(kw))));
     }
 
-    // tamanho (horas x orçamento)
+    // tamanho
     const inv=ans["investimento"]?.tags || {budgetMin:600,budgetMax:1200};
     const hours=hoursFromBudget(inv.budgetMin,inv.budgetMax);
     const multi=ans["tempoSessao"]?.tags?.session==="multi" || inv.budgetMin>=2500;
     const size=sizeFromTime(hours,multi);
+    const cm = SIZE_CM[size.size];
 
-    // textos
-    const placeReason = reasonForPlacement(tags);
-    const sizeReason  = reasonForSize({...tags,...inv}, hours, size.label);
-    const inspiration = buildInspirationText(tags, prefStyle);
+    // justificativa local/tamanho
+    const just = [];
+    if(tags.first) just.push("boa escolha para primeira tatuagem");
+    if(tags.pain==="baixa") just.push("região de menor sensibilidade");
+    if(tags.work==="formal") just.push("ajuda a manter discrição no trabalho");
+    if(tags.volu==="alta") just.push("fica fora do campo de visão constante");
+    if(tags.vis==="alta") just.push("boa visibilidade no dia a dia");
+    if(tags.presence==="impactante") just.push("garante presença visual");
+    const justification = `${just.length? just.join(" · "):"equilíbrio entre conforto e estética"} — tamanho aproximado ${cm} (${size.label}).`;
+
+    const inspiration = buildInspiration(tags);
 
     return {
-      persona, prefStyle,
+      persona,
       themes:[...new Set(themes)].slice(0,4),
       placementPrimary:placements[0] || "antebraço interno",
       sizeLabel:size.label,
-      sizeCm: cmForSizeLabel(size.label),
-      placeReason, sizeReason, inspiration,
+      sizeCm:cm,
+      justification,
+      inspiration,
       tone:tone(persona),
+      tags
     };
   }
 
-  // ===== RENDER =====
+  // ===== UI =====
   const app=document.getElementById("app");
   let step=0;
   const answers={};
   const total=Q.length;
 
-  function openResultTab(){
-    const r = recommend(answers);
-    const nome = (answers.nome?.value||"Você");
-    const html = `<!doctype html>
-<html lang="pt-br"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  function render(){
+    app.innerHTML="";
+    const q=Q[step];
+
+    const prog=el("div",{class:"prog"}, el("i",{style:`width:${Math.round(((step+1)/total)*100)}%`}));
+
+    const card=el("div",{class:"card"},
+      el("div",{class:"title"}, q.t),
+      q.helper?el("div",{class:"muted"}, q.helper):null,
+    );
+
+    if(q.type==="text"){
+      const input=el("input",{type:"text",placeholder:q.ph||"",value:answers[q.id]?.value||""});
+      input.addEventListener("input", ()=> answers[q.id]={value:input.value,tags:{}});
+      const actions=el("div",{class:"actions"},
+        el("button",{class:"btn",onClick:()=>{step=Math.max(0,step-1);render();}}, "Voltar"),
+        el("button",{class:"btn primary",onClick:()=>{
+          if(q.req && !input.value.trim()){ alert("Digite seu nome"); return; }
+          if(input.value.trim()) answers[q.id]={value:input.value.trim(),tags:{}};
+          step=Math.min(total-1,step+1); render();
+        }},"Avançar"),
+      );
+      card.append(el("div",{class:"row"},input), actions);
+
+    } else if(q.type==="single"){
+      // Seleção + Avançar
+      const selected = answers[q.id]?.__chosen || null;
+      const list=el("div",{class:"row row2"});
+      q.options.forEach((opt,idx)=>{
+        const isSel = selected===idx;
+        list.appendChild(
+          el("button",{class:"btn"+(isSel?" sel":""),onClick:()=>{ answers[q.id]={...opt,__chosen:idx}; render(); }}, opt.label)
+        );
+      });
+      const canNext = answers[q.id] && answers[q.id].__chosen != null;
+      const actions=el("div",{class:"actions"},
+        el("button",{class:"btn",onClick:()=>{step=Math.max(0,step-1);render();}}, "Voltar"),
+        el("button",{class:"btn primary",disabled:!canNext,onClick:()=>{
+          if(!canNext) return;
+          step=Math.min(total-1,step+1);
+          render();
+        }}, "Avançar")
+      );
+      card.append(list, actions);
+
+    } else if(q.type==="multi"){
+      const current = Array.isArray(answers[q.id])?answers[q.id]:[];
+      const list=el("div",{class:"row row2"});
+      q.options.forEach(opt=>{
+        const selected=current.find(o=>o.label===opt.label);
+        list.appendChild(el("button",{class:"btn"+(selected?" sel":""),onClick:()=>{
+          const arr=Array.isArray(answers[q.id])?[...answers[q.id]]:[];
+          const i=arr.findIndex(o=>o.label===opt.label);
+          if(i>=0) arr.splice(i,1); else arr.push(opt);
+          answers[q.id]=arr; render();
+        }}, opt.label));
+      });
+      const actions=el("div",{class:"actions"},
+        el("button",{class:"btn",onClick:()=>{step=Math.max(0,step-1);render();}}, "Voltar"),
+        el("button",{class:"btn primary",onClick:()=>{step=Math.min(total-1,step+1); render();}}, "Avançar"),
+      );
+      card.append(list,actions);
+    }
+
+    app.append(prog,card);
+
+    // Quando finalizar (após Q21), abre NOVA ABA com o resultado
+    if(step>=total-1){
+      const r = recommend(answers);
+      const nome = (answers.nome?.value||"Você");
+
+      const w = window.open("", "_blank");
+      const html = `
+<!doctype html><html lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Sugestão personalizada</title>
 <style>
-:root{--ink:#111;--muted:#666;--line:#e6e6e8;--primary:#8A9A5B;--primary-hover:#7b8b51}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial;background:#f7f7f8;color:var(--ink)}
-.wrap{max-width:860px;margin:0 auto;padding:24px}
-.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 6px 16px rgba(0,0,0,.04);padding:20px}
-h1{font-size:28px;margin:10px 0 6px}
-.kicker{font-size:12px;text-transform:uppercase;color:#666;margin-top:14px}
-.muted{color:#666}
-.row{display:grid;grid-template-columns:1fr;gap:12px}
-@media(min-width:720px){.row2{grid-template-columns:1fr 1fr}}
-.btn{appearance:none;border:1px solid var(--primary);background:var(--primary);color:#fff;border-radius:12px;padding:12px 14px;text-align:center;cursor:pointer;transition:.2s}
-.btn:hover{background:var(--primary-hover);border-color:var(--primary-hover)}
-.footer{margin:24px 0 10px;text-align:center;color:#888;font-size:12px}
+  :root{--bg:#f7f7f8;--card:#fff;--ink:#111;--muted:#666;--line:#e6e6e8;--radius:16px;--accent:#7A8B55;--accent-ink:#fff}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial}
+  .wrap{max-width:860px;margin:0 auto;padding:24px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 6px 16px rgba(0,0,0,.04);padding:20px}
+  .title{font-size:22px;margin:0 0 10px}
+  .kicker{font-size:12px;text-transform:uppercase;color:var(--muted);margin-top:14px}
+  .row{display:grid;grid-template-columns:1fr;gap:12px}
+  @media(min-width:720px){.row2{grid-template-columns:1fr 1fr}}
+  .btn{appearance:none;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:12px;padding:12px 14px;text-align:center;cursor:pointer}
+  input[type="text"]{width:100%;padding:12px;border:1px solid #d9d9df;border-radius:12px}
+  .muted{color:#666}
 </style>
 </head><body>
 <div class="wrap">
-  <h1>${nome}, sua sugestão personalizada 🎨</h1>
-
   <div class="card">
+    <div class="title">${nome}, sua sugestão personalizada 🎨</div>
+
     <div class="kicker">Tema recomendado</div>
-    <div style="font-size:18px;margin-top:6px">${r.themes[0]} <span class="muted">— com ${r.tone.themeLine}.</span></div>
+    <div style="font-size:18px;margin-top:4px">${r.themes[0]} — ${r.tone.themeLine}.</div>
     ${r.themes.slice(1).length ? `<div class="muted" style="margin-top:4px">Alternativas: ${r.themes.slice(1,4).join(" · ")}</div>` : ""}
 
-    <div class="row row2" style="margin-top:16px">
-      <div>
-        <div class="kicker">Local ideal</div>
-        <div style="font-size:18px;margin-top:6px">${r.placementPrimary}</div>
-        <div class="muted" style="margin-top:6px">${r.placeReason}.</div>
-      </div>
-      <div>
-        <div class="kicker">Tamanho sugerido</div>
-        <div style="font-size:18px;margin-top:6px">${r.sizeLabel} <span class="muted">(${r.sizeCm})</span></div>
-        <div class="muted" style="margin-top:6px">${r.sizeReason}.</div>
-      </div>
-    </div>
+    <div class="kicker">Local ideal</div>
+    <div style="font-size:18px;margin-top:4px">${r.placementPrimary}</div>
+    <div class="muted" style="margin-top:6px">Justificativa: ${r.justification}</div>
 
-    <div class="kicker" style="margin-top:16px">Inspiração adicional</div>
-    <div style="font-size:16px;margin-top:6px">${r.inspiration}</div>
+    ${r.inspiration ? `
+      <div class="kicker">Inspiração adicional</div>
+      <div style="font-size:16px;margin-top:4px">${r.inspiration}</div>` : ""}
 
-    <div style="margin-top:20px;line-height:1.55">
-      ${nome}, se quiser, podemos conversar sem compromisso sobre sua ideia. Será um prazer ouvir sua história e juntos pensarmos no desenho perfeito para você. Gosto que cada cliente tenha tempo e tranquilidade para decidir, sem pressa — a tatuagem é algo especial, e merece esse cuidado.
-    </div>
-
-    <div class="row row2" style="margin-top:12px">
+    <div class="row row2" style="margin-top:14px">
       <a class="btn" href="https://wa.me/5534999788095" target="_blank" rel="noreferrer">Quero conversar sobre minha ideia no WhatsApp</a>
-      <button class="btn" id="copyBtn">Copiar sugestão</button>
+      <button class="btn" id="copy">Copiar sugestão</button>
     </div>
 
     <div class="card" style="margin-top:14px;border-color:#efefef">
-      <div><strong>Quer receber inspirações de desenhos</strong> para te ajudar na decisão? Deixe seu WhatsApp ou e-mail. <em>É só para te inspirar, sem compromisso.</em></div>
+      <div><strong>Quer receber inspirações de desenhos</strong> para te ajudar na decisão? Deixe seu WhatsApp ou e-mail.
+        <em>É só para inspirar, sem compromisso.</em></div>
       <div class="row" style="margin-top:8px">
-        <input id="lead" type="text" placeholder="(DDD) WhatsApp ou e-mail" style="padding:12px;border:1px solid #d9d9df;border-radius:12px">
-        <button class="btn" id="leadBtn">Quero receber inspirações</button>
+        <input id="lead" type="text" placeholder="(DDD) WhatsApp ou e-mail"/>
+        <button class="btn" id="send">Quero receber inspirações</button>
       </div>
       <div class="muted" style="margin-top:6px">Sem spam. Só inspirações úteis.</div>
     </div>
   </div>
-
-  <div class="footer">© ${new Date().getFullYear()} • Feito com carinho por Laís • Uberaba-MG</div>
 </div>
 <script>
-  const nome=${JSON.stringify( (answers.nome?.value||"
+  const txt = "${nome} — Tema: ${r.themes[0]} | Local: ${r.placementPrimary} | Tamanho: ${r.sizeLabel} (${r.sizeCm})";
+  document.getElementById("copy").addEventListener("click", ()=>navigator.clipboard.writeText(txt).then(()=>alert("Sugestão copiada!")).catch(()=>alert("Copie manualmente: "+txt)));
+  const endpoint = ${FORMSPREE_ENDPOINT ? `"${FORMSPREE_ENDPOINT}"` : "''"};
+  document.getElementById("send").addEventListener("click", async ()=>{
+    const contato = (document.getElementById("lead").value||'').trim();
+    if(!contato){ alert("Preencha seu WhatsApp ou e-mail."); return; }
+    const leads = JSON.parse(localStorage.getItem("leads")||"[]");
+    leads.push({nome:${JSON.stringify(nome)},contato,ts:Date.now()});
+    localStorage.setItem("leads",JSON.stringify(leads));
+    if(endpoint){
+      try{
+        await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},
+          body:JSON.stringify({nome:${JSON.stringify(nome)},contato,perfil:"${r.persona}",universo:"${r.tags.universe||""}",presenca:"${r.tags.presence||""}"})
+        });
+        alert("Contato registrado! Você receberá inspirações ✨"); document.getElementById("lead").value="";
+        return;
+      }catch(e){}
+    }
+    alert("Contato salvo. Se quiser, depois conecto ao Formspree para chegar por e-mail.");
+  });
+</script>
+</body></html>`;
+      w.document.open(); w.document.write(html); w.document.close();
+    }
+  }
+
+  document.getElementById("year").textContent=new Date().getFullYear();
+  render();
+})();
+</script>
+</body>
+</html>
