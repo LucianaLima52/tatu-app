@@ -31,21 +31,10 @@
     .prog>i{display:block;height:100%;background:#111;width:0}
     input[type="text"]{width:100%;padding:12px;border:1px solid #d9d9df;border-radius:12px}
     .kicker{font-size:12px;text-transform:uppercase;color:var(--muted);margin-top:14px}
-    .list{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-    .chip{border:1px solid var(--line);padding:6px 10px;border-radius:999px;font-size:13px}
     .footer{margin:24px 0 10px;text-align:center;color:#888;font-size:12px}
   </style>
 </head>
 <body>
-  <!-- Netlify Forms: o HTML precisa ter um form com esse name para o Netlify detectar -->
-  <form name="inspiracoes" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
-    <input type="text" name="nome">
-    <input type="text" name="contato">
-    <input type="text" name="perfil">
-    <input type="text" name="universo">
-    <input type="text" name="presenca">
-  </form>
-
   <div class="wrap">
     <header>
       <h1>Qual é a tatuagem certa pra você?</h1>
@@ -59,12 +48,34 @@
 
 <script>
 (function(){
-  // ======= CONFIG DO NEGÓCIO =======
+  // ===== CONFIG =====
   const HOURLY = 150; // R$/hora (interno)
+  // Se criar seu formulário no Formspree, cole aqui o endpoint (ex.: "https://formspree.io/f/abcd1234"):
+  const FORMSPREE_ENDPOINT = ""; // pode deixar vazio; faremos fallback local
 
-  // ======= DADOS DAS PERGUNTAS =======
+  // ===== UTIL =====
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const el = (tag, attrs = {}, ...kids) => {
+    const n = document.createElement(tag);
+    // evita que botões virem "submit" e recarreguem a página
+    if (tag === "button" && !("type" in attrs)) n.setAttribute("type", "button");
+
+    Object.entries(attrs).forEach(([k, v]) => {
+      if (k === "class") n.className = v;
+      else if (k === "html") n.innerHTML = v;
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v);
+    });
+    kids.forEach(k => {
+      if (k == null) return;
+      n.appendChild(typeof k === "string" ? document.createTextNode(k) : k);
+    });
+    return n;
+  };
+
+  // ===== PERGUNTAS =====
   const Q = [
-    { id:"nome", t:"Qual é o seu nome?", type:"text", req:true, ph:"Digite seu nome" },
+    { id:"nome", t:"Qual é o seu nome?", type:"text", req:false, ph:"Digite seu nome" },
 
     { id:"experiencia", t:"Você já tem tatuagens ou seria a sua primeira?", type:"single",
       options:[
@@ -230,7 +241,7 @@
       ]},
   ];
 
-  // ======= LÓGICA =======
+  // ===== REGRAS DE RECOMENDAÇÃO =====
   const THEME_BY_PERSONA = {
     romantico:["flores/rosas realistas","mãos entrelaçadas","retrato de homenagem"],
     rebelde:["caveira simbólica","gladiador/templário","predador (lobo/tigre)"],
@@ -253,7 +264,6 @@
   const LESS_SEEN=["costela","alta das costas","lateral de coxa"];
   const LOW_PAIN=["antebraço","coxa","panturrilha","ombro"];
 
-  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const hoursFromBudget=(min,max)=>clamp(Math.round(((min+max)/2)/HOURLY),1,24);
   function sizeFromTime(h,multi=false){
     if(multi||h>=8) return {size:"projeto",label:"Projeto (várias sessões)"};
@@ -273,7 +283,6 @@
   }
 
   function recommend(ans){
-    // juntar tags
     const tags={};
     Object.values(ans).forEach(v=>{
       if(!v) return;
@@ -290,7 +299,6 @@
     if(tags.tribute==="pet") themes.unshift("retrato realista do seu pet");
     if(tags.tribute==="fe") themes.unshift("símbolo de fé/proteção em realismo");
 
-    // inspiração
     const insp=[];
     if(tags.astro==="agua") insp.push("toques de fluidez e movimento");
     if(tags.astro==="fogo") insp.push("energia e vigor nas transições de luz e sombra");
@@ -301,7 +309,6 @@
     if(tags.values==="fe")            insp.push("simbologia espiritual discreta");
     const inspiration=insp.length?insp.join(", "):null;
 
-    // locais
     let visKey=tags.vis||"media";
     let placements=[...(PLACEMENTS[visKey]||PLACEMENTS.media)];
     if(tags.first) placements=["antebraço interno","panturrilha","ombro",...placements];
@@ -327,7 +334,6 @@
       placements=placements.filter(p=>areas.some(a=>(map[a]||[]).some(kw=>p.includes(kw))));
     }
 
-    // tamanho (via investimento)
     const inv=ans["investimento"]?.tags || {budgetMin:600,budgetMax:1200};
     const hours=hoursFromBudget(inv.budgetMin,inv.budgetMax);
     const multi=ans["tempoSessao"]?.tags?.session==="multi" || inv.budgetMin>=2500;
@@ -340,187 +346,4 @@
       placementAlt:[...new Set(placements.slice(1,3))],
       sizeLabel:size.label,
       inspiration,
-      tone:tone(persona),
-    };
-  }
-
-  // ======= UI MINIMAL =======
-  const el = (tag, attrs={}, ...kids) => {
-    const n=document.createElement(tag);
-    Object.entries(attrs).forEach(([k,v])=>{
-      if(k==="class") n.className=v;
-      else if(k==="html") n.innerHTML=v;
-      else if(k.startsWith("on")) n.addEventListener(k.slice(2),v);
-      else n.setAttribute(k,v);
-    });
-    kids.forEach(k=>{ if(k==null) return; n.appendChild(typeof k==="string"?document.createTextNode(k):k); });
-    return n;
-  };
-
-  const app=document.getElementById("app");
-  let step=0;
-  const answers={};
-  const total=Q.length;
-
-  function render(){
-    app.innerHTML="";
-    const q=Q[step];
-
-    const prog=el("div",{class:"prog"}, el("i",{style:`width:${Math.round(((step+1)/total)*100)}%`}));
-
-    const card=el("div",{class:"card"},
-      el("div",{class:"title"}, q.t),
-      q.helper?el("div",{class:"muted"}, q.helper):null,
-    );
-
-    // inputs
-    if(q.type==="text"){
-      const input=el("input",{type:"text",placeholder:q.ph||"",value:answers[q.id]?.value||""});
-      input.addEventListener("input", ()=> answers[q.id]={value:input.value,tags:{}});
-      const actions=el("div",{class:"actions"},
-        el("button",{class:"btn",onClick:()=>{step=Math.max(0,step-1);render();}}, "Voltar"),
-        el("button",{class:"btn primary",onClick:()=>{
-          if(q.req && !input.value.trim()) { alert("Digite seu nome"); return; }
-          if(input.value.trim()) answers[q.id]={value:input.value.trim(),tags:{}};
-          step=Math.min(total-1,step+1); render();
-        }},"Avançar"),
-      );
-      card.append(el("div",{class:"row"},input), actions);
-
-    } else if(q.type==="single"){
-      const list=el("div",{class:"row row2"});
-      q.options.forEach(opt=>{
-        list.appendChild(el("button",{class:"btn",onClick:()=>{answers[q.id]=opt; step=Math.min(total-1,step+1); render();}}, opt.label));
-      });
-      const actions=el("div",{class:"actions"},
-        el("button",{class:"btn",onClick:()=>{step=Math.max(0,step-1);render();}}, "Voltar"),
-        el("div",{class:"muted"}, `${step+1} de ${total}`)
-      );
-      card.append(list,actions);
-
-    } else if(q.type==="multi"){
-      const current = Array.isArray(answers[q.id])?answers[q.id]:[];
-      const list=el("div",{class:"row row2"});
-      q.options.forEach(opt=>{
-        const selected=current.find(o=>o.label===opt.label);
-        list.appendChild(el("button",{class:"btn",onClick:()=>{
-          const arr=Array.isArray(answers[q.id])?[...answers[q.id]]:[];
-          const i=arr.findIndex(o=>o.label===opt.label);
-          if(i>=0) arr.splice(i,1); else arr.push(opt);
-          answers[q.id]=arr; render();
-        }, style:selected?"border-color:#111;":""
-        }, opt.label));
-      });
-      const actions=el("div",{class:"actions"},
-        el("button",{class:"btn",onClick:()=>{step=Math.max(0,step-1);render();}}, "Voltar"),
-        el("button",{class:"btn primary",onClick:()=>{step=Math.min(total-1,step+1); render();}}, "Avançar"),
-      );
-      card.append(list,actions);
-    }
-
-    // topo + card
-    app.append(prog,card);
-
-    // terminou?
-    const canFinish = step>=total-1;
-    if(canFinish){
-      const r = recommend(answers);
-      const nome = (answers.nome?.value||"Você");
-
-      const result = el("div",{class:"card",style:"margin-top:14px"},
-        el("div",{class:"row"},
-          el("div",{class:"title"}, `${nome}, sua sugestão personalizada 🎨`)
-        ),
-        el("div",{class:"kicker"},"Tema recomendado"),
-        el("div",{style:"font-size:18px;margin-top:4px"},
-          `${r.themes[0]} `,
-          el("span",{class:"muted"} ,`— em realismo preto e branco, com ${r.tone.themeLine}.`)
-        ),
-        r.themes.slice(1).length
-          ? el("div",{class:"muted",style:"margin-top:4px"}, "Alternativas: ", r.themes.slice(1,4).join(" · "))
-          : null,
-
-        el("div",{class:"row row2",style:"margin-top:14px"},
-          el("div",{},
-            el("div",{class:"kicker"},"Local ideal"),
-            el("div",{style:"font-size:18px;margin-top:4px"}, r.placementPrimary),
-            el("div",{class:"muted",style:"margin-top:4px"},
-              "Outras opções: ",
-              (r.placementAlt.join(" · ") || "—")
-            )
-          ),
-          el("div",{},
-            el("div",{class:"kicker"},"Tamanho sugerido"),
-            el("div",{style:"font-size:18px;margin-top:4px"}, r.sizeLabel),
-            el("div",{class:"muted",style:"margin-top:6px"},"*Sugerido a partir do seu perfil e faixa de investimento.")
-          ),
-        ),
-
-        r.inspiration ? el("div",{},
-          el("div",{class:"kicker"},"Inspiração adicional"),
-          el("div",{style:"font-size:18px;marginTop:'4px'"}, r.inspiration)
-        ) : null,
-
-        el("div",{style:"margin-top:16px;line-height:1.55"},
-          `${nome}, se quiser, podemos conversar sem compromisso sobre sua ideia. Será um prazer ouvir sua história e juntos pensarmos no desenho perfeito para você. Gosto que cada cliente tenha tempo e tranquilidade para decidir, sem pressa — a tatuagem é algo especial, e merece esse cuidado.`
-        ),
-
-        el("div",{class:"row row2",style:"margin-top:12px"},
-          el("a",{class:"btn primary block",href:"https://wa.me/5534999788095",target:"_blank",rel:"noreferrer"},"Quero conversar sobre minha ideia no WhatsApp"),
-          el("button",{class:"btn block",onClick:()=>{
-            const txt = `${nome} — Tema: ${r.themes[0]} | Local: ${r.placementPrimary} | Tamanho: ${r.sizeLabel}${r.inspiration? " | Inspiração: "+r.inspiration:""}`;
-            navigator.clipboard?.writeText(txt).then(()=>alert("Sugestão copiada!")).catch(()=>alert("Copie manualmente: "+txt));
-          }},"Copiar sugestão")
-        ),
-
-        // Lead
-        el("div",{class:"card",style:"margin-top:14px;border-color:#efefef"},
-          el("div",{}, el("strong",{},"Quer receber inspirações de desenhos"), " para te ajudar na decisão? Deixe seu WhatsApp ou e-mail. ",
-             el("em",{},"É só para te inspirar, sem compromisso.")),
-          el("div",{class:"row",style:"margin-top:8px"},
-            el("input",{id:"lead",type:"text",placeholder:"(DDD) WhatsApp ou e-mail"}),
-            el("button",{class:"btn primary",onClick:async()=>{
-              const contato = (document.getElementById("lead").value||"").trim();
-              if(!contato){ alert("Preencha seu WhatsApp ou e-mail."); return; }
-
-              // salva localmente também (backup)
-              const leads = JSON.parse(localStorage.getItem("leads")||"[]");
-              leads.push({nome,contato,ts:Date.now()});
-              localStorage.setItem("leads",JSON.stringify(leads));
-
-              // envia para Netlify Forms (no site publicado)
-              const payload = new URLSearchParams();
-              payload.append("form-name","inspiracoes");
-              payload.append("nome", nome);
-              payload.append("contato", contato);
-              payload.append("perfil", answers.perfil?.tags?.persona||"");
-              payload.append("universo", answers.universo?.tags?.universe||"");
-              payload.append("presenca", answers.presenca?.tags?.presence||"");
-
-              try{
-                await fetch("/",{
-                  method:"POST",
-                  headers:{"Content-Type":"application/x-www-form-urlencoded"},
-                  body:String(payload)
-                });
-                alert("Contato registrado! Você receberá inspirações sem compromisso ✨");
-                document.getElementById("lead").value="";
-              }catch(e){
-                alert("Contato salvo localmente. Ao publicar no Netlify, os envios passam a chegar no painel de Forms.");
-              }
-            }},"Quero receber inspirações")
-          ),
-          el("div",{class:"muted",style:"margin-top:6px"},"Sem spam. Só conteúdos úteis e inspirações de verdade.")
-        )
-      );
-
-      app.appendChild(result);
-    }
-  }
-
-  document.getElementById("year").textContent=new Date().getFullYear();
-  render();
-})();
-</script>
-</body>
-</html>
+      tone
