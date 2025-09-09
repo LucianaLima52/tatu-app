@@ -52,7 +52,7 @@
 (function(){
   // ===== CONFIG =====
   const HOURLY = 150;                 // R$/hora (interno)
-  const FORMSPREE_ENDPOINT = "";      // <<<<<< COLE AQUI SUA URL do Formspree (ex.: "https://formspree.io/f/XXXXYYYY")
+  const FORMSPREE_ENDPOINT = "";      // opcional: cole seu endpoint do Formspree
 
   // ===== UTIL =====
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -366,7 +366,7 @@
     if(tags.volu==="alta") just.push("fica fora do campo de visão constante");
     if(tags.vis==="alta") just.push("boa visibilidade no dia a dia");
     if(tags.presence==="impactante") just.push("garante presença visual");
-    const justification = `${just.length? just.join(" · "):"equilíbrio entre conforto e estética"} — tamanho aproximado ${cm} (${size.label}).`;
+    const justification = ${just.length? just.join(" · "):"equilíbrio entre conforto e estética"} — tamanho aproximado ${cm} (${size.label}).;
 
     const inspiration = buildInspiration(tags);
 
@@ -383,28 +383,6 @@
     };
   }
 
-  // ===== SERIALIZAÇÃO PARA ENVIO =====
-  function serializeAnswersForSubmit(Q, answers) {
-    const out = {};
-    Q.forEach(q=>{
-      const v = answers[q.id];
-      if(!v) return;
-      if(q.type === "text"){
-        out[q.id] = v.value || "";
-      } else if(q.type === "single"){
-        out[q.id] = v.label || "";
-        out[q.id+"_tags"] = v.tags || {};
-      } else if(q.type === "multi"){
-        const arr = Array.isArray(v) ? v : [];
-        out[q.id] = arr.map(o=>o.label).join("; ");
-        out[q.id+"_tags"] = arr.map(o=>o.tags||{});
-      }
-    });
-    return out;
-  }
-  // evita </script> em dados embutidos no HTML
-  const safeJSON = (obj)=> JSON.stringify(obj).replace(/</g, '\\u003C');
-
   // ===== UI =====
   const app=document.getElementById("app");
   let step=0;
@@ -418,19 +396,6 @@
 
     const r = recommend(answers);
     const nome = (answers.nome?.value||"Você");
-
-    // Pacote de dados para submissão
-    const RAW_OBJ = serializeAnswersForSubmit(Q, answers);
-    const REC_OBJ = {
-      themes: r.themes,
-      placement: r.placementPrimary,
-      sizeLabel: r.sizeLabel,
-      sizeCm: r.sizeCm,
-      justification: r.justification,
-      inspiration: r.inspiration,
-      persona: r.persona,
-      tags: r.tags
-    };
 
     const html =
 `<!doctype html><html lang="pt-br"><head>
@@ -458,7 +423,7 @@
 
     <div class="kicker">Tema recomendado</div>
     <div style="font-size:18px;margin-top:4px">${r.themes[0]} — ${r.tone.themeLine}.</div>
-    ${r.themes.slice(1).length ? `<div class="muted" style="margin-top:4px">Alternativas: ${r.themes.slice(1,4).join(" · ")}</div>` : ""}
+    ${r.themes.slice(1).length ? <div class="muted" style="margin-top:4px">Alternativas: ${r.themes.slice(1,4).join(" · ")}</div> : ""}
 
     <div class="kicker">Local ideal</div>
     <div style="font-size:18px;margin-top:4px">${r.placementPrimary}</div>
@@ -485,41 +450,25 @@
   </div>
 </div>
 <scr` + `ipt>
-  // Dados vindos da página anterior, embutidos de forma segura
-  const RAW = ${safeJSON(RAW_OBJ)};
-  const REC = ${safeJSON(REC_OBJ)};
-  const txt = ${JSON.stringify(`${nome} — Tema: ${r.themes[0]} | Local: ${r.placementPrimary} | Tamanho: ${r.sizeLabel} (${r.sizeCm})`)};
-
+  const txt = ${JSON.stringify(${nome} — Tema: ${r.themes[0]} | Local: ${r.placementPrimary} | Tamanho: ${r.sizeLabel} (${r.sizeCm}))};
   document.getElementById("copy").addEventListener("click", ()=>navigator.clipboard.writeText(txt).then(()=>alert("Sugestão copiada!")).catch(()=>alert("Copie manualmente: "+txt)));
-
-  const endpoint = ${FORMSPREE_ENDPOINT ? `"${FORMSPREE_ENDPOINT}"` : "''"};
-
+  const endpoint = ${FORMSPREE_ENDPOINT ? "${FORMSPREE_ENDPOINT}" : "''"};
   document.getElementById("send").addEventListener("click", async ()=>{
     const contato = (document.getElementById("lead").value||'').trim();
     if(!contato){ alert("Preencha seu WhatsApp ou e-mail."); return; }
-
-    try{
-      if(endpoint){
-        await fetch(endpoint,{
-          method:"POST",
-          headers:{"Content-Type":"application/json","Accept":"application/json"},
-          body:JSON.stringify({
-            ts: new Date().toISOString(),
-            nome: ${JSON.stringify(nome)},
-            contato,
-            resumo: REC,        // recomendação
-            respostas: RAW,     // todas as respostas
-            ua: navigator.userAgent
-          })
+    const leads = JSON.parse(localStorage.getItem("leads")||"[]");
+    leads.push({nome:${JSON.stringify(nome)},contato,ts:Date.now()});
+    localStorage.setItem("leads",JSON.stringify(leads));
+    if(endpoint){
+      try{
+        await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},
+          body:JSON.stringify({nome:${JSON.stringify(nome)},contato,perfil:"${r.persona}",universo:"${r.tags.universe||""}",presenca:"${r.tags.presence||""}"})
         });
-        alert("Contato registrado! Você receberá inspirações ✨");
-        document.getElementById("lead").value="";
-      }else{
-        alert("Endpoint não configurado. Cole sua URL do Formspree no código (FORMSPREE_ENDPOINT).");
-      }
-    }catch(e){
-      alert("Não foi possível enviar agora. Tente novamente.");
+        alert("Contato registrado! Você receberá inspirações ✨"); document.getElementById("lead").value="";
+        return;
+      }catch(e){}
     }
+    alert("Contato salvo. Se quiser, depois conecto ao Formspree para chegar por e-mail.");
   });
 </scr` + `ipt>
 </body></html>`;
@@ -544,7 +493,7 @@
     app.innerHTML="";
     const q=Q[step];
 
-    const prog=el("div",{class:"prog"}, el("i",{style:`width:${Math.round(((step+1)/total)*100)}%`}));
+    const prog=el("div",{class:"prog"}, el("i",{style:width:${Math.round(((step+1)/total)*100)}%}));
 
     const card=el("div",{class:"card"},
       el("div",{class:"title"}, q.t),
