@@ -46,14 +46,23 @@
     <div class="footer">© <span id="year"></span> • Feito com carinho por Laís • Uberaba-MG</div>
   </div>
 
-  <!-- JS externo -->
+  <!-- Script externo -->
   <script src="app.js" defer></script>
 </body>
-</html>
-(()=>{
+</html> (()=>{
 // ===== CONFIG =====
 const HOURLY = 150; // R$/hora (interno)
 const FORMSPREE_ENDPOINT = "https://formspree.io/f/mvgblrjq";
+
+// ===== UTM CAPTURE =====
+const UTM = (() => {
+  const p = new URLSearchParams(location.search);
+  return {
+    source: p.get("utm_source") || "",
+    medium: p.get("utm_medium") || "",
+    campaign: p.get("utm_campaign") || ""
+  };
+})();
 
 // ===== UTIL =====
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -540,7 +549,14 @@ function sendPayload(data){
   fetch(endpoint,{
     method:"POST",
     headers:{"Content-Type":"application/json","Accept":"application/json"},
-    body:JSON.stringify({ ts:new Date().toISOString(), ...data, ...flat })
+    body:JSON.stringify({
+      ts:new Date().toISOString(),
+      ...data,
+      ...flat,
+      utm_source: UTM.source,
+      utm_medium: UTM.medium,
+      utm_campaign: UTM.campaign
+    })
   }).catch(()=>{});
 }
 
@@ -569,7 +585,7 @@ function recommend(ans){
   if(tags.tribute==="pet")    themes.unshift("retrato do seu pet");
   if(tags.tribute==="fe")     themes.unshift("símbolo de fé/proteção");
 
-  // locais (base por visibilidade)
+  // locais (base)
   let visKey=tags.vis||"media";
   let basePlacements=[...(PLACEMENTS[visKey]||PLACEMENTS.media)];
   if(tags.first) basePlacements=["antebraço interno","panturrilha","ombro",...basePlacements];
@@ -577,7 +593,6 @@ function recommend(ans){
   if(tags.work==="formal" && visKey!=="baixa") basePlacements=[...LESS_SEEN,...PLACEMENTS.baixa];
   if(tags.pain==="baixa") basePlacements=[...basePlacements.filter(p=>LOW_PAIN.some(lp=>p.includes(lp))),...basePlacements];
 
-  // prioriza Q12 com segurança
   const picked = pickPlacement(basePlacements, tags, ans);
 
   // tamanho/orçamento
@@ -743,7 +758,7 @@ function finishOnce(){
   if (!(w && w.document)) return;
   w.document.open(); w.document.write(html); w.document.close();
 
-  // Handlers da página de resultado (anexados a partir daqui)
+  // Handlers na janela de resultado
   const btnCopy = w.document.getElementById("copy");
   if (btnCopy) {
     btnCopy.addEventListener("click", ()=>{
@@ -787,7 +802,10 @@ function finishOnce(){
             sizeLabel: REC_OBJ.sizeLabel,
             sizeCm: REC_OBJ.sizeCm,
             hoursEstimate: REC_OBJ.hours,
-            priceEstimate: REC_OBJ.priceEstimate
+            priceEstimate: REC_OBJ.priceEstimate,
+            utm_source: UTM.source,
+            utm_medium: UTM.medium,
+            utm_campaign: UTM.campaign
           })
         });
         lsSet(leadKey,"1"); sent = true; btnSend.textContent = "Enviado ✅";
@@ -887,4 +905,3 @@ document.getElementById("year").textContent=new Date().getFullYear();
 render();
 
 })();
-
