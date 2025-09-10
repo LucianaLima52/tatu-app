@@ -333,17 +333,56 @@
     });
     return out;
   }
-  // ATENÇÃO: não usar a palavra de fechamento da tag <scr + ipt> em comentários/strings
+  // proteção: evitar o fechamento da tag dentro de strings
   const safeJSON = (obj)=> JSON.stringify(obj).replace(/</g, '\\u003C');
 
-  // ===== ENVIOS =====
+  // ===== ENVIOS & DEDUPE & FLATTEN =====
+  function lsGet(k){ try{return localStorage.getItem(k);}catch(e){return null;} }
+  function lsSet(k,v){ try{localStorage.setItem(k,v);}catch(e){} }
+
+  // hash simples para chaves de dedupe
+  function makeKey(prefix, obj){
+    const s = JSON.stringify(obj || {});
+    let h = 0;
+    for(let i=0;i<s.length;i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
+    return `${prefix}:${h}`;
+  }
+
+  // cria colunas para o CSV
+  function flattenForFormspree(REC, RAW){
+    return {
+      theme: (REC.themes && REC.themes[0]) || "",
+      alt_themes: (REC.themes || []).slice(1,4).join(" | "),
+      placement: REC.placement || "",
+      sizeLabel: REC.sizeLabel || "",
+      sizeCm: REC.sizeCm || "",
+      persona: REC.persona || "",
+      motive: REC.tags?.motive || "",
+      universe: REC.tags?.universe || "",
+      vis: REC.tags?.vis || "",
+      work: REC.tags?.work || "",
+      pain: REC.tags?.pain || "",
+      session: REC.tags?.session || "",
+      budgetMin: REC.tags?.budgetMin ?? "",
+      budgetMax: REC.tags?.budgetMax ?? "",
+      astro: REC.tags?.astro ?? "",
+      values: REC.tags?.values ?? "",
+    };
+  }
+
   function sendPayload(data){
     const endpoint = FORMSPREE_ENDPOINT || "https://formspree.io/f/mvgblrjq";
     if(!endpoint) return;
+
+    const flat = flattenForFormspree(data.resumo || {}, data.respostas || {});
     fetch(endpoint,{
       method:"POST",
       headers:{"Content-Type":"application/json","Accept":"application/json"},
-      body:JSON.stringify({ ts:new Date().toISOString(), ...data })
+      body:JSON.stringify({
+        ts:new Date().toISOString(),
+        ...data,   // mantém JSON completo
+        ...flat    // adiciona colunas simples
+      })
     }).catch(()=>{});
   }
 
@@ -440,15 +479,19 @@
       tags: r.tags
     };
 
-    // >>> Envio automático
-    sendPayload({
-      source:"auto-finish",
-      nome: (answers.nome?.value||""),
-      contato: null,
-      resumo: REC_OBJ,
-      respostas: RAW_OBJ,
-      ua: navigator.userAgent
-    });
+    // >>> Envio automático com dedupe (localStorage) + flatten
+    const autoKey = makeKey("auto", {REC_OBJ, RAW_OBJ});
+    if (!lsGet(autoKey)) {
+      sendPayload({
+        source:"auto-finish",
+        nome: (answers.nome?.value||""),
+        contato: null,
+        resumo: REC_OBJ,
+        respostas: RAW_OBJ,
+        ua: navigator.userAgent
+      });
+      lsSet(autoKey,"1");
+    }
 
     const html =
 `<!doctype html><html lang="pt-br"><head>
@@ -509,14 +552,60 @@
 
   document.getElementById("copy").addEventListener("click", ()=>navigator.clipboard.writeText(txt).then(()=>alert("Sugestão copiada!")).catch(()=>alert("Copie manualmente: "+txt)));
 
-  // usar endpoint direto no popup
-  const endpoint = "https://formspree.io/f/mvgblrjq";
+  // --- utils popup (dedupe + flatten) ---
+  function lsGet(k){ try{return localStorage.getItem(k);}catch(e){return null;} }
+  function lsSet(k,v){ try{localStorage.setItem(k,v);}catch(e){} }
+  function makeKey(prefix, obj){
+    const s = JSON.stringify(obj || {});
+    let h = 0;
+    for (let i=0; i<s.length; i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
+    return \`\${prefix}:\${h}\`;
+  }
+  function flattenForFormspree(REC, RAW){
+    return {
+      theme: (REC.themes && REC.themes[0]) || "",
+      alt_themes: (REC.themes || []).slice(1,4).join(" | "),
+      placement: REC.placement || "",
+      sizeLabel: REC.sizeLabel || "",
+      sizeCm: REC.sizeCm || "",
+      persona: REC.persona || "",
+      motive: REC.tags?.motive || "",
+      universe: REC.tags?.universe || "",
+      vis: REC.tags?.vis || "",
+      work: REC.tags?.work || "",
+      pain: REC.tags?.pain || "",
+      session: REC.tags?.session || "",
+      budgetMin: REC.tags?.budgetMin ?? "",
+      budgetMax: REC.tags?.budgetMax ?? "",
+      astro: REC.tags?.astro ?? "",
+      values: REC.tags?.values ?? "",
+    };
+  }
 
-  document.getElementById("send").addEventListener("click", async ()=>{
+  const endpoint = "https://formspree.io/f/mvgblrjq";
+  const btn = document.getElementById("send");
+  let sending = false, sent = false;
+
+  btn.addEventListener("click", async ()=>{
+    if (sending || sent) return;
+
     const contato = (document.getElementById("lead").value||'').trim();
     if(!contato){ alert("Preencha seu WhatsApp ou e-mail."); return; }
 
+    // chave de dedupe: contato + contexto
+    const leadKey = makeKey("lead", {contato, REC, RAW});
+    if (lsGet(leadKey)) {
+      alert("Esse contato já foi registrado para esta sugestão. Obrigado! 💚");
+      return;
+    }
+
+    const oldTxt = btn.textContent;
+    sending = true;
+    btn.disabled = true;
+    btn.textContent = "Enviando...";
+
     try{
+      const flat = flattenForFormspree(REC, RAW);
       await fetch(endpoint,{
         method:"POST",
         headers:{"Content-Type":"application/json","Accept":"application/json"},
@@ -527,12 +616,19 @@
           contato,
           resumo: REC,
           respostas: RAW,
-          ua: navigator.userAgent
+          ua: navigator.userAgent,
+          ...flat
         })
       });
-      alert("Contato registrado! Você receberá inspirações ✨");
+      lsSet(leadKey,"1");
+      sent = true;
+      btn.textContent = "Enviado ✅";
       document.getElementById("lead").value="";
+      alert("Contato registrado! Você receberá inspirações ✨");
     }catch(e){
+      btn.disabled = false;
+      btn.textContent = oldTxt;
+      sending = false;
       alert("Não foi possível enviar agora. Tente novamente.");
     }
   });
