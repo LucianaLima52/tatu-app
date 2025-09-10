@@ -56,17 +56,10 @@
 
   // ===== UTIL =====
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-
-  // helper de elementos — atributos booleanos OK
   const el = (tag, attrs = {}, ...kids) => {
     const n = document.createElement(tag);
-    if (tag === "button" && !("type" in attrs)) n.setAttribute("type","button"); // nunca submit
-
-    const boolAttrs = new Set([
-      "disabled","checked","selected","readonly","multiple",
-      "required","autofocus","hidden"
-    ]);
-
+    if (tag === "button" && !("type" in attrs)) n.setAttribute("type","button");
+    const boolAttrs = new Set(["disabled","checked","selected","readonly","multiple","required","autofocus","hidden"]);
     Object.entries(attrs).forEach(([k,v])=>{
       if (k==="class") n.className = v;
       else if (k==="html") n.innerHTML = v;
@@ -74,7 +67,6 @@
       else if (boolAttrs.has(k)) { if (v) n.setAttribute(k,""); else n.removeAttribute(k); }
       else if (v !== false && v != null) n.setAttribute(k, String(v));
     });
-
     kids.forEach(k=>{ if(k==null) return; n.appendChild(typeof k==="string"?document.createTextNode(k):k); });
     return n;
   };
@@ -107,7 +99,6 @@
         {label:"Social / Estético(a) — moda, cultura pop, identidade de grupo.", tags:{persona:"social"}},
       ]},
 
-    /* comunicar (labels) */
     { id:"comunicar", t:"O que você mais quer comunicar com essa tatuagem?", type:"single",
       options:[
         {label:"Poder me expressar",           tags:{motive:"expressao"}},
@@ -124,7 +115,6 @@
         {label:"Realismo",                                tags:{prefStyle:"realismo"}},
       ]},
 
-    /* universo (labels longos) */
     { id:"universo", t:"Qual universo estético mais combina com você?", type:"single",
       options:[
         {label:"Clássico: estética inspirada na arte greco-romana e renascentista", tags:{universe:"classico"}},
@@ -202,7 +192,6 @@
         {label:"Não",                 tags:{tribute:"nao"}},
       ]},
 
-    /* presença (título + labels) */
     { id:"presenca", t:"Quando alguém olhar para a sua tatuagem, que reação você quer provocar?", type:"single",
       options:[
         {label:"Discreta (quase imperceptível / elegante)",         tags:{presence:"discreta"}},
@@ -222,7 +211,6 @@
         {label:"Sem preferência",                tags:{area:"nenhuma"}},
       ]},
 
-    /* astrologia (labels) */
     { id:"astrologia", t:"Inspiração astrológica? (opcional)", type:"single",
       options:[
         {label:"Não",   tags:{astro:null}},
@@ -232,7 +220,6 @@
         {label:"Elemento ar (gêmeos, libra, aquário): nuvens, pássaros, dente-de-leão, linhas de vento",   tags:{astro:"ar"}},
       ]},
 
-    /* valores (título + labels; chaves mantidas) */
     { id:"valores", t:"Quais símbolos você gostaria de acrescentar à sua tatuagem?", type:"single",
       options:[
         {label:"Sem símbolos",             tags:{values:null}},
@@ -333,14 +320,11 @@
     });
     return out;
   }
-  // proteção: evitar o fechamento da tag dentro de strings
   const safeJSON = (obj)=> JSON.stringify(obj).replace(/</g, '\\u003C');
 
   // ===== ENVIOS & DEDUPE & FLATTEN =====
   function lsGet(k){ try{return localStorage.getItem(k);}catch(e){return null;} }
   function lsSet(k,v){ try{localStorage.setItem(k,v);}catch(e){} }
-
-  // hash simples para chaves de dedupe
   function makeKey(prefix, obj){
     const s = JSON.stringify(obj || {});
     let h = 0;
@@ -348,40 +332,70 @@
     return `${prefix}:${h}`;
   }
 
-  // cria colunas para o CSV
-  function flattenForFormspree(REC, RAW){
-    return {
+  // cria TODAS as colunas planas para o CSV
+  function flattenAllForFormspree(REC, RAW){
+    const flat = {
+      // resumo
       theme: (REC.themes && REC.themes[0]) || "",
       alt_themes: (REC.themes || []).slice(1,4).join(" | "),
       placement: REC.placement || "",
       sizeLabel: REC.sizeLabel || "",
       sizeCm: REC.sizeCm || "",
       persona: REC.persona || "",
-      motive: REC.tags?.motive || "",
-      universe: REC.tags?.universe || "",
-      vis: REC.tags?.vis || "",
-      work: REC.tags?.work || "",
-      pain: REC.tags?.pain || "",
-      session: REC.tags?.session || "",
-      budgetMin: REC.tags?.budgetMin ?? "",
-      budgetMax: REC.tags?.budgetMax ?? "",
-      astro: REC.tags?.astro ?? "",
-      values: REC.tags?.values ?? "",
     };
+
+    // 1) labels/textos de cada pergunta
+    Object.keys(RAW||{}).forEach(k=>{
+      if(!k.endsWith("_tags")){
+        flat["q_"+k] = RAW[k];
+      }
+    });
+
+    // 2) tags (objetos e arrays) -> tag_<chave>=valor
+    Object.entries(RAW||{}).forEach(([k,v])=>{
+      if(!k.endsWith("_tags")) return;
+      if(Array.isArray(v)){
+        // ex.: areas_tags = [{area:"braco"}, {area:"perna"}]
+        const codes = [];
+        v.forEach(obj=>{
+          Object.entries(obj||{}).forEach(([kk,vv])=>{
+            if(kk==="area"){ codes.push(String(vv)); }
+          });
+        });
+        if(codes.length){
+          flat["tag_areas"] = codes.join(" | ");
+          // colunas booleanas por área
+          const ALL = ["braco","perna","costas","peito","costela","mao","pescoco","nenhuma"];
+          ALL.forEach(a=>{ flat["area_"+a] = codes.includes(a) ? 1 : ""; });
+        }
+      }else if(v && typeof v==="object"){
+        Object.entries(v).forEach(([kk,vv])=>{
+          flat["tag_"+kk] = vv;
+        });
+      }
+    });
+
+    // 3) cópia direta de algumas tags importantes do REC (garantia)
+    const rt = REC.tags || {};
+    ["motive","universe","vis","work","pain","session","day","period","budgetMin","budgetMax","tribute","presence","astro","values","music"].forEach(k=>{
+      if(flat["tag_"+k]==null && rt[k]!=null) flat["tag_"+k]=rt[k];
+    });
+
+    return flat;
   }
 
   function sendPayload(data){
     const endpoint = FORMSPREE_ENDPOINT || "https://formspree.io/f/mvgblrjq";
     if(!endpoint) return;
 
-    const flat = flattenForFormspree(data.resumo || {}, data.respostas || {});
+    const flat = flattenAllForFormspree(data.resumo || {}, data.respostas || {});
     fetch(endpoint,{
       method:"POST",
       headers:{"Content-Type":"application/json","Accept":"application/json"},
       body:JSON.stringify({
         ts:new Date().toISOString(),
         ...data,   // mantém JSON completo
-        ...flat    // adiciona colunas simples
+        ...flat    // adiciona TODAS as colunas simples
       })
     }).catch(()=>{});
   }
@@ -428,14 +442,12 @@
       }
     }
 
-    // tamanho
     const inv=ans["investimento"]?.tags || {budgetMin:600,budgetMax:1200};
     const hours=hoursFromBudget(inv.budgetMin,inv.budgetMax);
     const multi=ans["tempoSessao"]?.tags?.session==="multi" || inv.budgetMin>=2500;
     const size=sizeFromTime(hours,multi);
     const cm = SIZE_CM[size.size];
 
-    // justificativa local/tamanho
     const just = [];
     if(tags.first) just.push("boa escolha para primeira tatuagem");
     if(tags.pain==="baixa") just.push("região de menor sensibilidade");
@@ -552,7 +564,7 @@
 
   document.getElementById("copy").addEventListener("click", ()=>navigator.clipboard.writeText(txt).then(()=>alert("Sugestão copiada!")).catch(()=>alert("Copie manualmente: "+txt)));
 
-  // --- utils popup (dedupe + flatten) ---
+  // utils (popup)
   function lsGet(k){ try{return localStorage.getItem(k);}catch(e){return null;} }
   function lsSet(k,v){ try{localStorage.setItem(k,v);}catch(e){} }
   function makeKey(prefix, obj){
@@ -561,25 +573,30 @@
     for (let i=0; i<s.length; i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
     return \`\${prefix}:\${h}\`;
   }
-  function flattenForFormspree(REC, RAW){
-    return {
+  function flattenAllForFormspree(REC, RAW){
+    const flat = {
       theme: (REC.themes && REC.themes[0]) || "",
       alt_themes: (REC.themes || []).slice(1,4).join(" | "),
       placement: REC.placement || "",
       sizeLabel: REC.sizeLabel || "",
       sizeCm: REC.sizeCm || "",
       persona: REC.persona || "",
-      motive: REC.tags?.motive || "",
-      universe: REC.tags?.universe || "",
-      vis: REC.tags?.vis || "",
-      work: REC.tags?.work || "",
-      pain: REC.tags?.pain || "",
-      session: REC.tags?.session || "",
-      budgetMin: REC.tags?.budgetMin ?? "",
-      budgetMax: REC.tags?.budgetMax ?? "",
-      astro: REC.tags?.astro ?? "",
-      values: REC.tags?.values ?? "",
     };
+    Object.keys(RAW||{}).forEach(k=>{ if(!k.endsWith("_tags")) flat["q_"+k]=RAW[k]; });
+    Object.entries(RAW||{}).forEach(([k,v])=>{
+      if(!k.endsWith("_tags")) return;
+      if(Array.isArray(v)){
+        const codes=[]; v.forEach(obj=>Object.entries(obj||{}).forEach(([kk,vv])=>{ if(kk==="area") codes.push(String(vv)); }));
+        if(codes.length){ flat["tag_areas"]=codes.join(" | "); ["braco","perna","costas","peito","costela","mao","pescoco","nenhuma"].forEach(a=>flat["area_"+a]=codes.includes(a)?1:""); }
+      }else if(v && typeof v==="object"){
+        Object.entries(v).forEach(([kk,vv])=>{ flat["tag_"+kk]=vv; });
+      }
+    });
+    const rt=REC.tags||{};
+    ["motive","universe","vis","work","pain","session","day","period","budgetMin","budgetMax","tribute","presence","astro","values","music"].forEach(k=>{
+      if(flat["tag_"+k]==null && rt[k]!=null) flat["tag_"+k]=rt[k];
+    });
+    return flat;
   }
 
   const endpoint = "https://formspree.io/f/mvgblrjq";
@@ -592,20 +609,14 @@
     const contato = (document.getElementById("lead").value||'').trim();
     if(!contato){ alert("Preencha seu WhatsApp ou e-mail."); return; }
 
-    // chave de dedupe: contato + contexto
     const leadKey = makeKey("lead", {contato, REC, RAW});
-    if (lsGet(leadKey)) {
-      alert("Esse contato já foi registrado para esta sugestão. Obrigado! 💚");
-      return;
-    }
+    if (lsGet(leadKey)) { alert("Esse contato já foi registrado para esta sugestão. Obrigado! 💚"); return; }
 
     const oldTxt = btn.textContent;
-    sending = true;
-    btn.disabled = true;
-    btn.textContent = "Enviando...";
+    sending = true; btn.disabled = true; btn.textContent = "Enviando...";
 
     try{
-      const flat = flattenForFormspree(REC, RAW);
+      const flat = flattenAllForFormspree(REC, RAW);
       await fetch(endpoint,{
         method:"POST",
         headers:{"Content-Type":"application/json","Accept":"application/json"},
@@ -621,14 +632,10 @@
         })
       });
       lsSet(leadKey,"1");
-      sent = true;
-      btn.textContent = "Enviado ✅";
-      document.getElementById("lead").value="";
+      sent = true; btn.textContent = "Enviado ✅"; document.getElementById("lead").value="";
       alert("Contato registrado! Você receberá inspirações ✨");
     }catch(e){
-      btn.disabled = false;
-      btn.textContent = oldTxt;
-      sending = false;
+      btn.disabled = false; btn.textContent = oldTxt; sending = false;
       alert("Não foi possível enviar agora. Tente novamente.");
     }
   });
