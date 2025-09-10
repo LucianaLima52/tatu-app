@@ -57,7 +57,7 @@
   // ===== UTIL =====
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
-  // helper de elementos — CORRIGIDO para atributos booleanos
+  // helper de elementos — atributos booleanos OK
   const el = (tag, attrs = {}, ...kids) => {
     const n = document.createElement(tag);
     if (tag === "button" && !("type" in attrs)) n.setAttribute("type","button"); // nunca submit
@@ -114,14 +114,14 @@
         {label:"Social / Estético(a) — moda, cultura pop, identidade de grupo.", tags:{persona:"social"}},
       ]},
 
-    // PATCH: atualizar labels (Expressão -> Poder me expressar | Atitude -> Posicionamento e confronto)
+    // PATCH: comunicar (labels)
     { id:"comunicar", t:"O que você mais quer comunicar com essa tatuagem?", type:"single",
       options:[
-        {label:"Poder me expressar", tags:{motive:"expressao"}},
-        {label:"Homenagem",          tags:{motive:"homenagem"}},
-        {label:"Posicionamento e confronto", tags:{motive:"atitude"}},
-        {label:"Fé/Propósito",       tags:{motive:"fe"}},
-        {label:"Estética",           tags:{motive:"estetica"}},
+        {label:"Poder me expressar",           tags:{motive:"expressao"}},
+        {label:"Homenagem",                    tags:{motive:"homenagem"}},
+        {label:"Posicionamento e confronto",   tags:{motive:"atitude"}},
+        {label:"Fé/Propósito",                 tags:{motive:"fe"}},
+        {label:"Estética",                     tags:{motive:"estetica"}},
       ]},
 
     { id:"estilo", t:"Qual estilo mais combina com você? (calibra linguagem)", type:"single",
@@ -131,13 +131,14 @@
         {label:"Realismo",                                tags:{prefStyle:"realismo"}},  /* renomeado */
       ]},
 
+    // PATCH: universo (labels longos)
     { id:"universo", t:"Qual universo estético mais combina com você?", type:"single",
       options:[
-        {label:"Clássico",  tags:{universe:"classico"}},
-        {label:"Pop-Geek",  tags:{universe:"pop"}},
-        {label:"Natureza",  tags:{universe:"natureza"}},
-        {label:"Mitologia", tags:{universe:"mitologia"}},
-        {label:"Retratos",  tags:{universe:"retrato"}},
+        {label:"Clássico: estética inspirada na arte greco-romana e renascentista", tags:{universe:"classico"}},
+        {label:"Pop-Geek: universo de cultura pop (HQs, games, anime)",             tags:{universe:"pop"}},
+        {label:"Natureza: foco em flora, fauna e paisagens",                        tags:{universe:"natureza"}},
+        {label:"Mitologia: deuses, criaturas e símbolos arquetípicos",              tags:{universe:"mitologia"}},
+        {label:"Figuras humanas e personagens",                                     tags:{universe:"retrato"}},
       ]},
 
     { id:"visibilidade", t:"Você quer que sua tatuagem apareça no dia a dia?", type:"single",
@@ -208,11 +209,12 @@
         {label:"Não",                 tags:{tribute:"nao"}},
       ]},
 
-    { id:"presenca", t:"Qual presença você deseja?", type:"single",
+    // PATCH: presença (título + labels)
+    { id:"presenca", t:"Quando alguém olhar para a sua tatuagem, que reação você quer provocar?", type:"single",
       options:[
-        {label:"Discreta",     tags:{presence:"discreta"}},
-        {label:"Equilibrada",  tags:{presence:"equilibrada"}},
-        {label:"Impactante",   tags:{presence:"impactante"}},
+        {label:"Discreta (quase imperceptível / elegante)",         tags:{presence:"discreta"}},
+        {label:"Conversável (gera curiosidade e diálogo)",          tags:{presence:"equilibrada"}},
+        {label:"Protagonista (marca presença forte / manifesto)",   tags:{presence:"impactante"}},
       ]},
 
     { id:"areas", t:"Áreas preferidas (opcional)", type:"multi",
@@ -227,21 +229,23 @@
         {label:"Sem preferência",                tags:{area:"nenhuma"}},
       ]},
 
+    // PATCH: astrologia (labels)
     { id:"astrologia", t:"Inspiração astrológica? (opcional)", type:"single",
       options:[
         {label:"Não",   tags:{astro:null}},
-        {label:"Água",  tags:{astro:"agua"}},
-        {label:"Fogo",  tags:{astro:"fogo"}},
-        {label:"Terra", tags:{astro:"terra"}},
-        {label:"Ar",    tags:{astro:"ar"}},
+        {label:"Elemento água (câncer, escorpião, peixes): ondas, lua, água-viva, concha", tags:{astro:"agua"}},
+        {label:"Elemento fogo (áries, leão, sagitário): chamas, sol, fênix, vulcão",       tags:{astro:"fogo"}},
+        {label:"Elemento terra (touro, virgem, capricórnio): montanhas, árvore, cristal, espiga de trigo", tags:{astro:"terra"}},
+        {label:"Elemento ar (gêmeos, libra, aquário): nuvens, pássaros, dente-de-leão, linhas de vento",   tags:{astro:"ar"}},
       ]},
 
-    { id:"valores", t:"Valores/simbologia (opcional)", type:"single",
+    // PATCH: valores (título + labels; mantidos os mesmos tags para compatibilidade)
+    { id:"valores", t:"Quais símbolos você gostaria de acrescentar à sua tatuagem?", type:"single",
       options:[
-        {label:"Sem símbolos",   tags:{values:null}},
-        {label:"Autenticidade",  tags:{values:"autenticidade"}},
-        {label:"Natureza",       tags:{values:"natureza"}},
-        {label:"Fé",             tags:{values:"fe"}},
+        {label:"Sem símbolos",           tags:{values:null}},
+        {label:"Arabescos e filigranas", tags:{values:"autenticidade"}},
+        {label:"Desenhos geométricos",   tags:{values:"natureza"}},
+        {label:"Elementos arquitetônicos", tags:{values:"fe"}},
       ]},
 
     { id:"musica", t:"Música/cultura influencia? (opcional)", type:"single",
@@ -256,20 +260,24 @@
   ];
 
   // ===== REGRAS =====
+  // PATCH: THEME_BY_PERSONA (descrições novas)
   const THEME_BY_PERSONA = {
-    romantico:["flores/rosas realistas","mãos entrelaçadas","retrato de homenagem"],
-    rebelde:["caveira simbólica","gladiador/templário","predador (lobo/tigre)"],
-    mistico:["olho místico","símbolo de proteção (São Bento)","mandala realista"],
-    artistico:["composição de luz & sombra","retrato artístico","natureza dramática"],
-    social:["ícone cultural realista","estudo fotográfico estiloso","objeto icônico"],
+    romantico:["Celebra vínculos afetivos com símbolos de amor, florais e frases delicadas"],
+    rebelde:["Feita para desafiar padrões como caveira, chamas, pantera"],
+    mistico:["Traduz a espiritualidade, intuição e proteção em símbolos esotéricos, fases da lua, sol, constelações"],
+    artistico:["Autoral: sua ideia transformada em uma composição única"],
+    social:["Para visibilizar causas, identidades e pertencimentos como frases curtas, símbolos e grafismos"],
   };
+
+  // PATCH: CULTURE_MOD (descrições novas)
   const CULTURE_MOD = {
-    classico:["escultura/estátua realista","mãos caravaggescas"],
-    pop:["referência cinematográfica sutil","ícone pop em realismo"],
-    natureza:["botânica realista","ave/mamífero em close"],
-    mitologia:["medusa/greco-romano","guerreiro(a) mitológico(a)"],
-    retrato:["retrato humano","close dramático"],
+    classico:["Proporção e simetria com dramatismo escultórico, inspirada na arte antiga/renascentista, enfatizando luz e sombra e ornamentos históricos"],
+    pop:["referência cinematográfica sutil","ícone pop em realismo"], // mantido
+    natureza:["Retrata plantas, flores, folhas e ramos com ênfase em formas orgânicas e detalhes naturais (nervuras, pétalas, texturas)"],
+    mitologia:["Representa deuses, heróis, criaturas e símbolos de mitos"],
+    retrato:["Figura humana: representação de silhuetas, corpo em movimento, mãos"],
   };
+
   const PLACEMENTS = { alta:["antebraço externo","panturrilha","antebraço interno"], media:["bíceps","coxa","ombro"], baixa:["costela","tórax/peito","alta das costas"] };
   const LESS_SEEN=["costela","alta das costas","lateral de coxa"];
   const LOW_PAIN=["antebraço","coxa","panturrilha","ombro"];
@@ -295,24 +303,25 @@
 
   function buildInspiration(tags){
     const parts=[];
-    if(tags.astro==="agua") parts.push("linhas fluidas, composição com movimento e transições suaves");
-    if(tags.astro==="fogo") parts.push("contrastes intensos e direção de luz dramática para energia");
-    if(tags.astro==="terra") parts.push("texturas orgânicas (folhas, rochas) e sensação de estabilidade");
-    if(tags.astro==="ar") parts.push("composição leve/arejada e espaços negativos bem trabalhados");
+    if(tags.astro==="agua") parts.push("linhas fluidas e temas de água (ondas, lua, conchas, água-viva)");
+    if(tags.astro==="fogo") parts.push("chamas, sol, fênix e contrastes mais quentes para energia");
+    if(tags.astro==="terra") parts.push("montanhas, árvores e texturas minerais (cristais, grão da pedra)");
+    if(tags.astro==="ar") parts.push("composição leve com nuvens, pássaros, dente-de-leão e linhas de vento");
 
-    if(tags.values==="autenticidade") parts.push("símbolos de liberdade/individualidade (pássaros, chaves, bússola)");
-    if(tags.values==="natureza") parts.push("elementos botânicos/animais em close para detalhes ricos");
-    if(tags.values==="fe") parts.push("simbologia discreta (São Bento, cruz sutil, olho protetor)");
+    // PATCH: novos significados para 'values' mantendo as chaves existentes
+    if(tags.values==="autenticidade") parts.push("ornamentos em arabescos e filigranas para elegância e fluxo");
+    if(tags.values==="natureza")      parts.push("geometria (mandalas, padrões e formas modulares) como base estética");
+    if(tags.values==="fe")            parts.push("elementos arquitetônicos (arcos, colunas, vitrais) como símbolo de estrutura e propósito");
 
     if(tags.motive==="homenagem") parts.push("elementos pessoais do homenageado (data, objeto marcante ou caligrafia)");
     if(tags.motive==="expressao") parts.push("composição autoral combinando referência fotográfica e texturas");
-    if(tags.motive==="atitude") parts.push("ângulos marcantes e enquadramento forte para imponência");
+    if(tags.motive==="atitude")   parts.push("ângulos marcantes e enquadramento forte para imponência");
 
-    if(tags.music==="rock") parts.push("texturas granuladas, luz de palco ou referência simbólica sutil");
-    if(tags.music==="mpb") parts.push("orgânico e poético: plantas brasileiras, traços suaves");
-    if(tags.music==="pop") parts.push("ícone cultural minimalista integrado ao motivo principal");
-    if(tags.music==="rap") parts.push("contraste alto e elementos urbanos discretos");
-    if(tags.music==="classica") parts.push("referência a esculturas e tratamento de luz clássico");
+    if(tags.music==="rock")     parts.push("texturas granuladas, luz de palco ou referência simbólica sutil");
+    if(tags.music==="mpb")      parts.push("orgânico e poético: plantas brasileiras, traços suaves");
+    if(tags.music==="pop")      parts.push("ícone cultural minimalista integrado ao motivo principal");
+    if(tags.music==="rap")      parts.push("contraste alto e elementos urbanos discretos");
+    if(tags.music==="classica") parts.push("tratamento de luz mais clássico e escultórico");
 
     return parts.length ? parts.join(". ") + "." : null;
   }
@@ -364,8 +373,8 @@
     if(tags.first) just.push("boa escolha para primeira tatuagem");
     if(tags.pain==="baixa") just.push("região de menor sensibilidade");
     if(tags.work==="formal") just.push("ajuda a manter discrição no trabalho");
-    if(tags.volu==="alta") just.push("fica fora do campo de visão constante");
-    if(tags.vis==="alta") just.push("boa visibilidade no dia a dia");
+    if(tags.volu==="alta")  just.push("fica fora do campo de visão constante");
+    if(tags.vis==="alta")   just.push("boa visibilidade no dia a dia");
     if(tags.presence==="impactante") just.push("garante presença visual");
     const justification = `${just.length? just.join(" · "):"equilíbrio entre conforto e estética"} — tamanho aproximado ${cm} (${size.label}).`;
 
@@ -403,7 +412,8 @@
     });
     return out;
   }
-  // evita </script> em dados embutidos no HTML
+
+  // Evita a sequência de fechamento </script> dentro de strings
   const safeJSON = (obj)=> JSON.stringify(obj).replace(/</g, '\\u003C');
 
   // ===== UI =====
