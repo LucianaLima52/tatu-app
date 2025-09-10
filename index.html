@@ -48,7 +48,7 @@
   <div class="footer">© <span id="year"></span> • Feito com carinho por Laís • Uberaba-MG</div>
 </div>
 
-<scrip"+"t>
+<script>
 (function(){
   // ===== CONFIG =====
   const HOURLY = 150;                 // R$/hora (interno)
@@ -361,10 +361,8 @@
 
   function kbOf(areaLabel){
     const k = areaLabel.toLowerCase();
-    // match por chave direta
     let found = AREAS_KB[Object.keys(AREAS_KB).find(key=> k.startsWith(key))];
     if(found) return found;
-    // fallback por substring
     return Object.entries(AREAS_KB).find(([key])=>k.includes(key))?.[1] || null;
   }
 
@@ -372,32 +370,26 @@
     const meta = kbOf(areaLabel) || {};
     let s = 0;
 
-    // Preferência explícita do cliente (Q12) pesa MUITO
     if (prefs.length && matchesPreference(areaLabel, prefs)) s += 5;
 
-    // Dor x iniciante/tolerância
     if (tags.first && meta.pain==="baixa") s += 2;
     if (tags.first && meta.pain==="alta")  s -= 2;
     if (tags.pain==="baixa" && meta.pain!=="baixa") s -= 1;
 
-    // Trabalho formal favorece áreas discretas
     if (tags.work==="formal"){
       if (/(mão|mao|punho|pescoço|pescoco|antebraço externo)/i.test(areaLabel)) s -= 3;
       if (/(costas|costela|peito|tórax|torax)/i.test(areaLabel)) s += 1;
     }
 
-    // Volubilidade alta prefere menor exposição visual
     if (tags.volu==="alta"){
       if (/(costas|costela|coxa|peito|tórax|torax)/i.test(areaLabel)) s += 1;
       if (/(antebraço externo|mão|mao|pescoço|pescoco)/i.test(areaLabel)) s -= 1;
     }
 
-    // Impacto (presença) favorece áreas “de palco”
     if (tags.presence==="impactante"){
       if (/(peito|tórax|torax|bíceps|antebraço externo|alta das costas|ombro)/i.test(areaLabel)) s += 2;
     }
 
-    // Visibilidade desejada
     if (tags.vis==="alta"  && /(antebraço externo|mão|mao|pescoço|pescoco)/i.test(areaLabel)) s += 1;
     if (tags.vis==="baixa" && /(costas|costela|coxa|peito|tórax|torax)/i.test(areaLabel)) s += 1;
 
@@ -407,10 +399,8 @@
   function pickPlacement(basePlacements, tags, answers){
     const prefs=(answers["areas"]||[]).map(o=>o.tags?.area).filter(a=>a && a!=="nenhuma");
 
-    // Candidatos = base + chaves do KB (enriquece lista)
     let candidates=[...new Set([...basePlacements, ...Object.keys(AREAS_KB)])];
 
-    // Promove preferência segura do cliente
     if (prefs.length){
       const preferidos = candidates.filter(c=>matchesPreference(c, prefs));
       if (preferidos.length){
@@ -424,7 +414,6 @@
       }
     }
 
-    // Ordena por score geral
     candidates.sort((a,b)=>scoreArea(b,tags,prefs)-scoreArea(a,tags,prefs));
 
     const primary=candidates[0];
@@ -443,8 +432,6 @@
   // ===== Compositor de texto coeso =====
   function composeThemeText(tags){
     const parts = [];
-
-    // 1) foco principal (homenagem tem prioridade)
     if (tags.tribute === "pet") {
       parts.push("Retrato realista em preto & branco do seu pet");
     } else if (tags.tribute === "pessoa") {
@@ -455,40 +442,25 @@
       const personaTxt = KB.persona[tags.persona] || "tom pessoal";
       parts.push(`Composição realista PB com ${personaTxt}`);
     }
-
-    // 2) intenção
     if (tags.motive && KB.motive[tags.motive]) {
       parts.push(`para ${KB.motive[tags.motive]}`);
     }
-
-    // 3) astro
     if (tags.astro && KB.astro[tags.astro]) {
       parts.push(`acabamento com ${KB.astro[tags.astro].resumo}`);
     }
-
-    // 4) símbolos/values
     if (tags.values && KB.values[tags.values]) {
       const v = KB.values[tags.values];
       parts.push(`e ${v.texto} (${v.toque})`);
     }
+    if (tags.music === "rap")      parts.push("toque urbano sutil");
+    else if (tags.music === "rock") parts.push("texturas mais cruas");
+    else if (tags.music === "mpb")  parts.push("poesia orgânica");
 
-    // 5) música (toque sutil)
-    if (tags.music === "rap") {
-      parts.push("toque urbano sutil");
-    } else if (tags.music === "rock") {
-      parts.push("texturas mais cruas");
-    } else if (tags.music === "mpb") {
-      parts.push("poesia orgânica");
-    }
-
-    const frase = parts
-      .filter(Boolean)
+    const frase = parts.filter(Boolean)
       .map((s,i)=> i===0 ? s[0].toUpperCase()+s.slice(1) : s)
       .join(", ")
-      .replace(/, ([^,]+)$/, " e $1")
-      + ".";
+      .replace(/, ([^,]+)$/, " e $1") + ".";
 
-    // alternativas curtas
     const alts = [];
     if (tags.tribute === "pet") {
       alts.push("Close PB do olhar do pet com linhas de vento");
@@ -537,10 +509,8 @@
     return `${prefix}:${h}`;
   }
 
-  // cria TODAS as colunas planas para o CSV
   function flattenAllForFormspree(REC, RAW){
     const flat = {
-      // resumo
       theme: (REC.themes && REC.themes[0]) || "",
       alt_themes: (REC.themes || []).slice(1,4).join(" | "),
       placement: REC.placement || "",
@@ -557,16 +527,13 @@
         : ""
     };
 
-    // 1) labels/textos de cada pergunta
     Object.keys(RAW||{}).forEach(k=>{
       if(!k.endsWith("_tags")) flat["q_"+k] = RAW[k];
     });
 
-    // 2) tags (objetos e arrays) -> tag_<chave>=valor
     Object.entries(RAW||{}).forEach(([k,v])=>{
       if(!k.endsWith("_tags")) return;
       if(Array.isArray(v)){
-        // ex.: areas_tags = [{area:"braco"}, {area:"perna"}]
         const codes = [];
         v.forEach(obj=>{
           Object.entries(obj||{}).forEach(([kk,vv])=>{
@@ -575,7 +542,6 @@
         });
         if(codes.length){
           flat["tag_areas"] = codes.join(" | ");
-          // colunas booleanas por área
           const ALL = ["braco","perna","costas","peito","costela","mao","pescoco","nenhuma"];
           ALL.forEach(a=>{ flat["area_"+a] = codes.includes(a) ? 1 : ""; });
         }
@@ -586,7 +552,6 @@
       }
     });
 
-    // 3) cópia direta de tags importantes do REC (garantia)
     const rt = REC.tags || {};
     ["motive","universe","vis","work","pain","session","day","period","budgetMin","budgetMax","tribute","presence","astro","values","music","first","volu","prefStyle"]
       .forEach(k=>{
@@ -606,8 +571,8 @@
       headers:{"Content-Type":"application/json","Accept":"application/json"},
       body:JSON.stringify({
         ts:new Date().toISOString(),
-        ...data,   // mantém JSON completo
-        ...flat    // adiciona TODAS as colunas simples
+        ...data,
+        ...flat
       })
     }).catch(()=>{});
   }
@@ -636,7 +601,7 @@
     if(tags.tribute==="pet")    themes.unshift("retrato do seu pet");
     if(tags.tribute==="fe")     themes.unshift("símbolo de fé/proteção");
 
-    // locais (mantém a base pela visibilidade)
+    // locais (base por visibilidade)
     let visKey=tags.vis||"media";
     let basePlacements=[...(PLACEMENTS[visKey]||PLACEMENTS.media)];
     if(tags.first) basePlacements=["antebraço interno","panturrilha","ombro",...basePlacements];
@@ -644,7 +609,7 @@
     if(tags.work==="formal" && visKey!=="baixa") basePlacements=[...LESS_SEEN,...PLACEMENTS.baixa];
     if(tags.pain==="baixa") basePlacements=[...basePlacements.filter(p=>LOW_PAIN.some(lp=>p.includes(lp))),...basePlacements];
 
-    // aplica o novo selecionador que prioriza Q12 de forma segura
+    // prioriza Q12 com segurança
     const picked = pickPlacement(basePlacements, tags, ans);
 
     // tamanho/orçamento
@@ -653,8 +618,7 @@
     const multi=ans["tempoSessao"]?.tags?.session==="multi" || inv.budgetMin>=2500;
     let size=sizeFromTime(hours,multi);
 
-    // --- cap suave para primeira tatuagem ---
-    // se é 1ª tattoo e tamanho saiu "Grande", reduz para "Médio" (a menos que presença = impactante **e** sessão >= 5–6h)
+    // cap suave para 1ª tattoo
     if (tags.first && size.size==="grande"){
       const wantsImpact = tags.presence==="impactante";
       const longSession = ans["tempoSessao"]?.label?.includes("5–6h") || ans["tempoSessao"]?.tags?.session==="longa" || ans["tempoSessao"]?.tags?.session==="multi";
@@ -668,7 +632,7 @@
     const cm = SIZE_CM[size.size];
     const priceEstimate = Math.round(hours * HOURLY);
 
-    // justificativa (mais explícita)
+    // justificativa
     const just = [];
     const reasons = picked.reasons || [];
     if (reasons.length) just.push(...reasons);
@@ -705,10 +669,9 @@
     const r = recommend(answers);
     const nome = (answers.nome?.value||"Você");
 
-    // texto coeso do tema
     const wording = composeThemeText(r.tags);
     const temaPrincipal = wording.frase;
-    const alternativasTema = wording.alts; // array de 3 curtas
+    const alternativasTema = wording.alts;
 
     const RAW_OBJ = serializeAnswersForSubmit(Q, answers);
     const REC_OBJ = {
@@ -727,7 +690,7 @@
       alternativasTxt: alternativasTema
     };
 
-    // >>> Envio automático com dedupe (localStorage) + flatten
+    // envio automático + dedupe
     const autoKey = makeKey("auto", {REC_OBJ, RAW_OBJ});
     if (!lsGet(autoKey)) {
       sendPayload({
@@ -803,14 +766,13 @@
     </div>
   </div>
 </div>
-<scrip` + `t>
+<scr` + `ipt>
   const RAW = ${safeJSON(RAW_OBJ)};
   const REC = ${safeJSON(REC_OBJ)};
   const txt = ${JSON.stringify(txtResumo)};
 
   document.getElementById("copy").addEventListener("click", ()=>navigator.clipboard.writeText(txt).then(()=>alert("Sugestão copiada!")).catch(()=>alert("Copie manualmente: "+txt)));
 
-  // --- util para dedupe no popup ---
   function lsGet(k){ try{return localStorage.getItem(k);}catch(e){return null;} }
   function lsSet(k,v){ try{localStorage.setItem(k,v);}catch(e){} }
   function makeKey(prefix, obj){
@@ -830,7 +792,6 @@
     const contato = (document.getElementById("lead").value||'').trim();
     if(!contato){ alert("Preencha seu WhatsApp ou e-mail."); return; }
 
-    // chave de dedupe: contato + contexto
     const leadKey = makeKey("lead", {contato, REC, RAW});
     if (lsGet(leadKey)) {
       alert("Esse contato já foi registrado para esta sugestão. Obrigado! 💚");
@@ -876,7 +837,7 @@
       alert("Não foi possível enviar agora. Tente novamente.");
     }
   });
-</scrip` + `t>
+</scr` + `ipt>
 </body></html>`;
 
     let w = window.open("", "_blank");
@@ -898,7 +859,7 @@
     app.innerHTML="";
     const q=Q[step];
 
-    const prog=el("div",{class:"prog"}, el("i",{style:`width:${Math.round(((step+1)/total)*100)}%`}));
+    const prog=el("div",{class:"prog"}, el("i",{style:`width:${Math.round(((step+1)/total)*100)}%`}}));
 
     const card=el("div",{class:"card"},
       el("div",{class:"title"}, q.t),
@@ -976,6 +937,6 @@
   document.getElementById("year").textContent=new Date().getFullYear();
   render();
 })();
-</scrip"+"t>
+</script>
 </body>
 </html>
