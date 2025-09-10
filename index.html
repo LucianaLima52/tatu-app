@@ -48,7 +48,7 @@
   <div class="footer">© <span id="year"></span> • Feito com carinho por Laís • Uberaba-MG</div>
 </div>
 
-<script>
+<scrip"+"t>
 (function(){
   // ===== CONFIG =====
   const HOURLY = 150;                 // R$/hora (interno)
@@ -259,21 +259,6 @@
   const LOW_PAIN=["antebraço","coxa","panturrilha","ombro"];
   const SIZE_CM = { pequeno:"6–9 cm", medio:"12–18 cm", grande:"20–30 cm", projeto:"área maior em várias sessões (40+ cm no total por área)" };
 
-  // ===== ÁREAS: dor/visibilidade/indicação para iniciantes (KB interno) =====
-  const AREAS_KB = {
-    "antebraço interno": { pain:"baixa",  visibility:"media", beginner:true,  match:["antebraço","interno"] },
-    "antebraço externo": { pain:"baixa",  visibility:"alta",  beginner:true,  match:["antebraço","externo"] },
-    "bíceps":            { pain:"baixa",  visibility:"media", beginner:true,  match:["bíceps","braco","braço"] },
-    "ombro":             { pain:"baixa",  visibility:"media", beginner:true,  match:["ombro","braco","braço"] },
-    "coxa":              { pain:"baixa",  visibility:"media", beginner:true,  match:["coxa","perna"] },
-    "panturrilha":       { pain:"baixa",  visibility:"media", beginner:true,  match:["panturrilha","perna"] },
-    "alta das costas":   { pain:"baixa",  visibility:"baixa", beginner:true,  match:["costas","alta"] },
-    "tórax/peito":       { pain:"media",  visibility:"media", beginner:"ok",  match:["peito","tórax","torax"] },
-    "costela":           { pain:"alta",   visibility:"baixa", beginner:false, match:["costela","lateral"] },
-    "mão/punho":         { pain:"alta",   visibility:"alta",  beginner:false, match:["mão","mao","punho"] },
-    "pescoço":           { pain:"alta",   visibility:"alta",  beginner:false, match:["pescoço","pescoco"] }
-  };
-
   const hoursFromBudget=(min,max)=>clamp(Math.round(((min+max)/2)/HOURLY),1,24);
   function sizeFromTime(h,multi=false){
     if(multi||h>=8) return {size:"projeto",label:"Projeto"};
@@ -345,6 +330,116 @@
     }
   };
 
+  // ===== ÁREAS: dor/visibilidade/indicação para iniciantes (KB interno) =====
+  const AREAS_KB = {
+    "antebraço interno": { pain:"baixa",  visibility:"media", beginner:true,  match:["antebraço","interno"] },
+    "antebraço externo": { pain:"baixa",  visibility:"alta",  beginner:true,  match:["antebraço","externo"] },
+    "bíceps":            { pain:"baixa",  visibility:"media", beginner:true,  match:["bíceps","braco","braço"] },
+    "ombro":             { pain:"baixa",  visibility:"media", beginner:true,  match:["ombro","braco","braço"] },
+    "coxa":              { pain:"baixa",  visibility:"media", beginner:true,  match:["coxa","perna"] },
+    "panturrilha":       { pain:"baixa",  visibility:"media", beginner:true,  match:["panturrilha","perna"] },
+    "alta das costas":   { pain:"baixa",  visibility:"baixa", beginner:true,  match:["costas","alta"] },
+    "tórax/peito":       { pain:"media",  visibility:"media", beginner:"ok",  match:["peito","tórax","torax"] },
+    "costela":           { pain:"alta",   visibility:"baixa", beginner:false, match:["costela","lateral"] },
+    "mão/punho":         { pain:"alta",   visibility:"alta",  beginner:false, match:["mão","mao","punho"] },
+    "pescoço":           { pain:"alta",   visibility:"alta",  beginner:false, match:["pescoço","pescoco"] }
+  };
+
+  function matchesPreference(areaLabel, selectedAreas){
+    const a = areaLabel.toLowerCase();
+    return selectedAreas.some(sa=>{
+      if(sa==="braco")    return /antebraço|bíceps|ombro/.test(a);
+      if(sa==="perna")    return /coxa|panturrilha/.test(a);
+      if(sa==="costas")   return /costas/.test(a);
+      if(sa==="peito")    return /peito|tórax|torax/.test(a);
+      if(sa==="costela")  return /costela|lateral/.test(a);
+      if(sa==="mao")      return /mão|mao|punho/.test(a);
+      if(sa==="pescoco")  return /pescoço|pescoco/.test(a);
+      return false;
+    });
+  }
+
+  function kbOf(areaLabel){
+    const k = areaLabel.toLowerCase();
+    // match por chave direta
+    let found = AREAS_KB[Object.keys(AREAS_KB).find(key=> k.startsWith(key))];
+    if(found) return found;
+    // fallback por substring
+    return Object.entries(AREAS_KB).find(([key])=>k.includes(key))?.[1] || null;
+  }
+
+  function scoreArea(areaLabel, tags, prefs){
+    const meta = kbOf(areaLabel) || {};
+    let s = 0;
+
+    // Preferência explícita do cliente (Q12) pesa MUITO
+    if (prefs.length && matchesPreference(areaLabel, prefs)) s += 5;
+
+    // Dor x iniciante/tolerância
+    if (tags.first && meta.pain==="baixa") s += 2;
+    if (tags.first && meta.pain==="alta")  s -= 2;
+    if (tags.pain==="baixa" && meta.pain!=="baixa") s -= 1;
+
+    // Trabalho formal favorece áreas discretas
+    if (tags.work==="formal"){
+      if (/(mão|mao|punho|pescoço|pescoco|antebraço externo)/i.test(areaLabel)) s -= 3;
+      if (/(costas|costela|peito|tórax|torax)/i.test(areaLabel)) s += 1;
+    }
+
+    // Volubilidade alta prefere menor exposição visual
+    if (tags.volu==="alta"){
+      if (/(costas|costela|coxa|peito|tórax|torax)/i.test(areaLabel)) s += 1;
+      if (/(antebraço externo|mão|mao|pescoço|pescoco)/i.test(areaLabel)) s -= 1;
+    }
+
+    // Impacto (presença) favorece áreas “de palco”
+    if (tags.presence==="impactante"){
+      if (/(peito|tórax|torax|bíceps|antebraço externo|alta das costas|ombro)/i.test(areaLabel)) s += 2;
+    }
+
+    // Visibilidade desejada
+    if (tags.vis==="alta"  && /(antebraço externo|mão|mao|pescoço|pescoco)/i.test(areaLabel)) s += 1;
+    if (tags.vis==="baixa" && /(costas|costela|coxa|peito|tórax|torax)/i.test(areaLabel)) s += 1;
+
+    return s;
+  }
+
+  function pickPlacement(basePlacements, tags, answers){
+    const prefs=(answers["areas"]||[]).map(o=>o.tags?.area).filter(a=>a && a!=="nenhuma");
+
+    // Candidatos = base + chaves do KB (enriquece lista)
+    let candidates=[...new Set([...basePlacements, ...Object.keys(AREAS_KB)])];
+
+    // Promove preferência segura do cliente
+    if (prefs.length){
+      const preferidos = candidates.filter(c=>matchesPreference(c, prefs));
+      if (preferidos.length){
+        const seguros = preferidos.filter(c=>{
+          const meta = kbOf(c);
+          return !(meta?.pain==="alta" && tags.pain==="baixa");
+        });
+        if (seguros.length){
+          candidates = [...new Set([...seguros, ...candidates])];
+        }
+      }
+    }
+
+    // Ordena por score geral
+    candidates.sort((a,b)=>scoreArea(b,tags,prefs)-scoreArea(a,tags,prefs));
+
+    const primary=candidates[0];
+    const alts = candidates.slice(1).filter(x=>x!==primary).slice(0,2);
+
+    const reasons=[];
+    const mPrim = kbOf(primary)||{};
+    if (prefs.length && matchesPreference(primary,prefs)) reasons.push("respeita sua preferência de área");
+    if (tags.first && mPrim?.pain==="baixa") reasons.push("conforto para primeira tatuagem");
+    if (tags.presence==="impactante") reasons.push("garante presença visual");
+    if (tags.work==="formal") reasons.push("permite maior discrição no trabalho");
+
+    return {primary, alts, reasons};
+  }
+
   // ===== Compositor de texto coeso =====
   function composeThemeText(tags){
     const parts = [];
@@ -357,7 +452,6 @@
     } else if (tags.tribute === "fe") {
       parts.push("Símbolo de fé/proteção em realismo PB");
     } else {
-      // fallback pela persona
       const personaTxt = KB.persona[tags.persona] || "tom pessoal";
       parts.push(`Composição realista PB com ${personaTxt}`);
     }
@@ -518,103 +612,13 @@
     }).catch(()=>{});
   }
 
-  // ===== AUXILIARES DE LOCAL =====
-  function matchesPreference(areaLabel, selectedAreas){
-    const a = areaLabel.toLowerCase();
-    return selectedAreas.some(sa=>{
-      if(sa==="braco")    return /antebraço|bíceps|ombro/.test(a);
-      if(sa==="perna")    return /coxa|panturrilha/.test(a);
-      if(sa==="costas")   return /costas/.test(a);
-      if(sa==="peito")    return /peito|tórax|torax/.test(a);
-      if(sa==="costela")  return /costela|lateral/.test(a);
-      if(sa==="mao")      return /mão|mao|punho/.test(a);
-      if(sa==="pescoco")  return /pescoço|pescoco/.test(a);
-      return false;
-    });
-  }
+  // ===== UI =====
+  const app=document.getElementById("app");
+  let step=0;
+  const answers={};
+  const total=Q.length;
+  let finished=false;
 
-  function kbOf(areaLabel){
-    const k = areaLabel.toLowerCase();
-    // match direto
-    let found = AREAS_KB[Object.keys(AREAS_KB).find(key=> k.startsWith(key))];
-    if(found) return found;
-    // fallback substring
-    return Object.entries(AREAS_KB).find(([key])=>k.includes(key))?.[1] || null;
-  }
-
-  function scoreArea(areaLabel, tags, prefs){
-    const meta = kbOf(areaLabel) || {};
-    let s = 0;
-
-    // Preferência explícita do cliente (Q12)
-    if (prefs.length && matchesPreference(areaLabel, prefs)) s += 5;
-
-    // Dor x iniciante/tolerância
-    if (tags.first && meta.pain==="baixa") s += 2;
-    if (tags.first && meta.pain==="alta")  s -= 2;
-    if (tags.pain==="baixa" && meta.pain!=="baixa") s -= 1;
-
-    // Trabalho formal favorece áreas discretas
-    if (tags.work==="formal"){
-      if (/(mão|mao|punho|pescoço|pescoco|antebraço externo)/i.test(areaLabel)) s -= 3;
-      if (/(costas|costela|peito|tórax|torax)/i.test(areaLabel)) s += 1;
-    }
-
-    // Volubilidade alta prefere menor exposição visual
-    if (tags.volu==="alta"){
-      if (/(costas|costela|coxa|peito|tórax|torax)/i.test(areaLabel)) s += 1;
-      if (/(antebraço externo|mão|mao|pescoço|pescoco)/i.test(areaLabel)) s -= 1;
-    }
-
-    // Impacto (presença)
-    if (tags.presence==="impactante"){
-      if (/(peito|tórax|torax|bíceps|antebraço externo|alta das costas|ombro)/i.test(areaLabel)) s += 2;
-    }
-
-    // Visibilidade desejada
-    if (tags.vis==="alta"  && /(antebraço externo|mão|mao|pescoço|pescoco)/i.test(areaLabel)) s += 1;
-    if (tags.vis==="baixa" && /(costas|costela|coxa|peito|tórax|torax)/i.test(areaLabel)) s += 1;
-
-    return s;
-  }
-
-  function pickPlacement(basePlacements, tags, answers){
-    const prefs=(answers["areas"]||[]).map(o=>o.tags?.area).filter(a=>a && a!=="nenhuma");
-
-    // Candidatos = base + chaves do KB
-    let candidates=[...new Set([...basePlacements, ...Object.keys(AREAS_KB)])];
-
-    // Promove preferências quando seguras
-    if (prefs.length){
-      const preferidos = candidates.filter(c=>matchesPreference(c, prefs));
-      if (preferidos.length){
-        const seguros = preferidos.filter(c=>{
-          const meta = kbOf(c);
-          return !(meta?.pain==="alta" && tags.pain==="baixa");
-        });
-        if (seguros.length){
-          candidates = [...new Set([...seguros, ...candidates])];
-        }
-      }
-    }
-
-    // Ordena por score
-    candidates.sort((a,b)=>scoreArea(b,tags,prefs)-scoreArea(a,tags,prefs));
-
-    const primary=candidates[0];
-    const alts = candidates.slice(1).filter(x=>x!==primary).slice(0,2);
-
-    const reasons=[];
-    const mPrim = kbOf(primary)||{};
-    if (prefs.length && matchesPreference(primary,prefs)) reasons.push("respeita sua preferência de área");
-    if (tags.first && mPrim?.pain==="baixa") reasons.push("conforto para primeira tatuagem");
-    if (tags.presence==="impactante") reasons.push("garante presença visual");
-    if (tags.work==="formal") reasons.push("permite maior discrição no trabalho");
-
-    return {primary, alts, reasons};
-  }
-
-  // ===== MOTOR =====
   function recommend(ans){
     const tags={};
     Object.values(ans).forEach(v=>{
@@ -632,7 +636,7 @@
     if(tags.tribute==="pet")    themes.unshift("retrato do seu pet");
     if(tags.tribute==="fe")     themes.unshift("símbolo de fé/proteção");
 
-    // locais (base por visibilidade)
+    // locais (mantém a base pela visibilidade)
     let visKey=tags.vis||"media";
     let basePlacements=[...(PLACEMENTS[visKey]||PLACEMENTS.media)];
     if(tags.first) basePlacements=["antebraço interno","panturrilha","ombro",...basePlacements];
@@ -650,6 +654,7 @@
     let size=sizeFromTime(hours,multi);
 
     // --- cap suave para primeira tatuagem ---
+    // se é 1ª tattoo e tamanho saiu "Grande", reduz para "Médio" (a menos que presença = impactante **e** sessão >= 5–6h)
     if (tags.first && size.size==="grande"){
       const wantsImpact = tags.presence==="impactante";
       const longSession = ans["tempoSessao"]?.label?.includes("5–6h") || ans["tempoSessao"]?.tags?.session==="longa" || ans["tempoSessao"]?.tags?.session==="multi";
@@ -664,8 +669,11 @@
     const priceEstimate = Math.round(hours * HOURLY);
 
     // justificativa (mais explícita)
-    const just = [...picked.reasons];
+    const just = [];
+    const reasons = picked.reasons || [];
+    if (reasons.length) just.push(...reasons);
     if(tags.pain==="baixa") just.push("buscamos região de menor sensibilidade");
+    if(tags.work==="formal") just.push("considera discrição no trabalho");
     if(tags.volu==="alta")  just.push("evita ficar no campo de visão constante");
     const justification = `${just.length? just.join(" · "):"equilíbrio entre conforto e estética"} — tamanho aproximado ${cm} (${size.label}).`;
 
@@ -675,6 +683,7 @@
       persona,
       themes:[...new Set(themes)].slice(0,4),
       placementsAll: [picked.primary, ...picked.alts],
+      placement: picked.primary || "antebraço interno",
       placementPrimary: picked.primary || "antebraço interno",
       placementAlts: picked.alts || [],
       sizeLabel:size.label,
@@ -690,7 +699,8 @@
   }
 
   function finishOnce(){
-    if(window.__finished__) return; window.__finished__ = true;
+    if(finished) return;
+    finished = true;
 
     const r = recommend(answers);
     const nome = (answers.nome?.value||"Você");
@@ -793,7 +803,7 @@
     </div>
   </div>
 </div>
-<scr` + `ipt>
+<scrip` + `t>
   const RAW = ${safeJSON(RAW_OBJ)};
   const REC = ${safeJSON(REC_OBJ)};
   const txt = ${JSON.stringify(txtResumo)};
@@ -807,7 +817,7 @@
     const s = JSON.stringify(obj || {});
     let h = 0;
     for (let i=0; i<s.length; i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
-    return `${prefix}:${h}`;
+    return \`\${prefix}:\${h}\`;
   }
 
   const endpoint = "https://formspree.io/f/mvgblrjq";
@@ -866,7 +876,7 @@
       alert("Não foi possível enviar agora. Tente novamente.");
     }
   });
-</scr` + `ipt>
+</scrip` + `t>
 </body></html>`;
 
     let w = window.open("", "_blank");
@@ -883,12 +893,6 @@
       URL.revokeObjectURL(url);
     }
   }
-
-  // ===== UI =====
-  const app=document.getElementById("app");
-  let step=0;
-  const answers={};
-  const total=Q.length;
 
   function render(){
     app.innerHTML="";
@@ -972,6 +976,6 @@
   document.getElementById("year").textContent=new Date().getFullYear();
   render();
 })();
-</script>
+</scrip"+"t>
 </body>
 </html>
