@@ -239,7 +239,7 @@
       ]},
   ];
 
-  // ===== REGRAS =====
+  // ===== REGRAS (temas) =====
   const THEME_BY_PERSONA = {
     romantico:["Celebra vínculos afetivos com símbolos de amor, florais e frases delicadas"],
     rebelde:["Feita para desafiar padrões como caveira, chamas, pantera"],
@@ -259,6 +259,89 @@
   const LOW_PAIN=["antebraço","coxa","panturrilha","ombro"];
   const SIZE_CM = { pequeno:"6–9 cm", medio:"12–18 cm", grande:"20–30 cm", projeto:"área maior em várias sessões (40+ cm no total por área)" };
 
+  // ===== KB (tema coeso) =====
+  const KB = {
+    astro: {
+      fogo: { resumo: "audácia e energia; luz dramática e direção marcada" },
+      terra:{ resumo: "forma e técnica; texturas orgânicas e estabilidade" },
+      ar:   { resumo: "leveza e movimento; composição arejada" },
+      agua: { resumo: "emoção e intuição; transições suaves e fluidez" }
+    },
+    values: {
+      autenticidade: { texto:"ornamentos em arabescos/filigranas", toque:"elegância fluida" },
+      natureza:      { texto:"geometria/mandalas e padrões",       toque:"ordem e ritmo"    },
+      fe:            { texto:"elementos arquitetônicos",            toque:"estrutura e propósito" }
+    },
+    motive: {
+      expressao: "reforçar autoria e sentimento",
+      homenagem: "registrar carinho e memória",
+      atitude:   "afirmar posicionamento",
+      fe:        "representar propósito/espiritualidade",
+      estetica:  "valorizar harmonia e forma"
+    },
+    persona: {
+      romantico: "tom afetivo e poético",
+      rebelde:   "tom incisivo e desafiador",
+      mistico:   "tom simbólico e protetor",
+      artistico: "tom autoral e de estudo de luz",
+      social:    "tom identitário e de pertencimento"
+    }
+  };
+
+  // ===== Compositor de texto (tema coeso) =====
+  function composeThemeText(tags){
+    const parts = [];
+
+    if (tags.tribute === "pet") {
+      parts.push("Retrato realista em preto & branco do seu pet");
+    } else if (tags.tribute === "pessoa") {
+      parts.push("Retrato realista PB de pessoa querida");
+    } else if (tags.tribute === "fe") {
+      parts.push("Símbolo de fé/proteção em realismo PB");
+    } else {
+      const personaTxt = KB.persona[tags.persona] || "tom pessoal";
+      parts.push(`Composição realista PB com ${personaTxt}`);
+    }
+
+    if (tags.motive && KB.motive[tags.motive]) {
+      parts.push(`para ${KB.motive[tags.motive]}`);
+    }
+    if (tags.astro && KB.astro[tags.astro]) {
+      parts.push(`acabamento com ${KB.astro[tags.astro].resumo}`);
+    }
+    if (tags.values && KB.values[tags.values]) {
+      const v = KB.values[tags.values];
+      parts.push(`e ${v.texto} (${v.toque})`);
+    }
+    if (tags.music === "rap") parts.push("toque urbano sutil");
+    else if (tags.music === "rock") parts.push("texturas mais cruas");
+    else if (tags.music === "mpb") parts.push("poesia orgânica");
+
+    const frase = parts
+      .filter(Boolean)
+      .map((s,i)=> i===0 ? s[0].toUpperCase()+s.slice(1) : s)
+      .join(", ")
+      .replace(/, ([^,]+)$/, " e $1")
+      + ".";
+
+    const alts = [];
+    if (tags.tribute === "pet") {
+      alts.push("Close PB do olhar do pet com linhas de vento");
+      alts.push("Silhueta do pet integrada a geometria minimalista");
+      alts.push("Nome/data do pet em realismo suave");
+    } else if (tags.tribute === "pessoa") {
+      alts.push("Close PB com foco em luz & sombra");
+      alts.push("Silhueta com geometria discreta");
+      alts.push("Inicial/data como assinatura afetiva");
+    } else {
+      alts.push("Estudo de luz & sombra com foco no motivo central");
+      alts.push("Composição com geometria discreta como moldura");
+      alts.push("Ícone afetivo em realismo PB minimalista");
+    }
+    return { frase, alts: alts.slice(0,3) };
+  }
+
+  // ===== Cálculo geral =====
   const hoursFromBudget=(min,max)=>clamp(Math.round(((min+max)/2)/HOURLY),1,24);
   function sizeFromTime(h,multi=false){
     if(multi||h>=8) return {size:"projeto",label:"Projeto"};
@@ -301,100 +384,91 @@
     return parts.length ? parts.join(". ") + "." : null;
   }
 
-  // ===== KB (conhecimento interno, invisível) =====
-  const KB = {
-    astro: {
-      fogo: { resumo: "audácia e energia; luz dramática e direção marcada" },
-      terra:{ resumo: "forma e técnica; texturas orgânicas e estabilidade" },
-      ar:   { resumo: "leveza e movimento; composição arejada" },
-      agua: { resumo: "emoção e intuição; transições suaves e fluidez" }
-    },
-    values: {
-      autenticidade: { texto:"ornamentos em arabescos/filigranas", toque:"elegância fluida" },
-      natureza:      { texto:"geometria/mandalas e padrões",       toque:"ordem e ritmo"    },
-      fe:            { texto:"elementos arquitetônicos",            toque:"estrutura e propósito" }
-    },
-    motive: {
-      expressao: "reforçar autoria e sentimento",
-      homenagem: "registrar carinho e memória",
-      atitude:   "afirmar posicionamento",
-      fe:        "representar propósito/espiritualidade",
-      estetica:  "valorizar harmonia e forma"
-    },
-    persona: {
-      romantico: "tom afetivo e poético",
-      rebelde:   "tom incisivo e desafiador",
-      mistico:   "tom simbólico e protetor",
-      artistico: "tom autoral e de estudo de luz",
-      social:    "tom identitário e de pertencimento"
-    }
+  // ===== ÁREAS: dor/visibilidade/indicação (KB interno) =====
+  const AREAS_KB = {
+    "antebraço interno": { pain:"baixa",  visibility:"media", beginner:true,  match:["antebraço","interno"] },
+    "antebraço externo": { pain:"baixa",  visibility:"alta",  beginner:true,  match:["antebraço","externo"] },
+    "bíceps":            { pain:"baixa",  visibility:"media", beginner:true,  match:["bíceps","braco","braço"] },
+    "ombro":             { pain:"baixa",  visibility:"media", beginner:true,  match:["ombro","braco","braço"] },
+    "coxa":              { pain:"baixa",  visibility:"media", beginner:true,  match:["coxa","perna"] },
+    "panturrilha":       { pain:"baixa",  visibility:"media", beginner:true,  match:["panturrilha","perna"] },
+    "alta das costas":   { pain:"baixa",  visibility:"baixa", beginner:true,  match:["costas","alta"] },
+    "tórax/peito":       { pain:"media",  visibility:"media", beginner:"ok",  match:["peito","tórax","torax"] },
+    "costela":           { pain:"alta",   visibility:"baixa", beginner:false, match:["costela","lateral"] },
+    "mão/punho":         { pain:"alta",   visibility:"alta",  beginner:false, match:["mão","mao","punho"] },
+    "pescoço":           { pain:"alta",   visibility:"alta",  beginner:false, match:["pescoço","pescoco"] }
   };
 
-  // ===== Compositor de texto coeso =====
-  function composeThemeText(tags){
-    const parts = [];
-
-    // 1) foco principal (homenagem tem prioridade)
-    if (tags.tribute === "pet") {
-      parts.push("Retrato realista em preto & branco do seu pet");
-    } else if (tags.tribute === "pessoa") {
-      parts.push("Retrato realista PB de pessoa querida");
-    } else if (tags.tribute === "fe") {
-      parts.push("Símbolo de fé/proteção em realismo PB");
-    } else {
-      // fallback pela persona
-      const personaTxt = KB.persona[tags.persona] || "tom pessoal";
-      parts.push(`Composição realista PB com ${personaTxt}`);
+  function matchesPreference(areaLabel, selectedAreas){
+    const a = areaLabel.toLowerCase();
+    return selectedAreas.some(sa=>{
+      if(sa==="braco")    return /antebraço|bíceps|ombro/.test(a);
+      if(sa==="perna")    return /coxa|panturrilha/.test(a);
+      if(sa==="costas")   return /costas/.test(a);
+      if(sa==="peito")    return /peito|tórax|torax/.test(a);
+      if(sa==="costela")  return /costela|lateral/.test(a);
+      if(sa==="mao")      return /mão|mao|punho/.test(a);
+      if(sa==="pescoco")  return /pescoço|pescoco/.test(a);
+      return false;
+    });
+  }
+  function kbOf(areaLabel){
+    const k = areaLabel.toLowerCase();
+    let foundKey = Object.keys(AREAS_KB).find(key=> k.startsWith(key));
+    if(foundKey) return AREAS_KB[foundKey];
+    return Object.entries(AREAS_KB).find(([key])=>k.includes(key))?.[1] || null;
+  }
+  function scoreArea(areaLabel, tags, prefs){
+    const meta = kbOf(areaLabel) || {};
+    let s = 0;
+    if (prefs.length && matchesPreference(areaLabel, prefs)) s += 5;
+    if (tags.first && meta.pain==="baixa") s += 2;
+    if (tags.first && meta.pain==="alta")  s -= 2;
+    if (tags.pain==="baixa" && meta.pain!=="baixa") s -= 1;
+    if (tags.work==="formal"){
+      if (/(mão|mao|punho|pescoço|pescoco|antebraço externo)/i.test(areaLabel)) s -= 3;
+      if (/(costas|costela|peito|tórax|torax)/i.test(areaLabel)) s += 1;
     }
-
-    // 2) intenção
-    if (tags.motive && KB.motive[tags.motive]) {
-      parts.push(`para ${KB.motive[tags.motive]}`);
+    if (tags.volu==="alta"){
+      if (/(costas|costela|coxa|peito|tórax|torax)/i.test(areaLabel)) s += 1;
+      if (/(antebraço externo|mão|mao|pescoço|pescoco)/i.test(areaLabel)) s -= 1;
     }
-
-    // 3) astro
-    if (tags.astro && KB.astro[tags.astro]) {
-      parts.push(`acabamento com ${KB.astro[tags.astro].resumo}`);
+    if (tags.presence==="impactante"){
+      if (/(peito|tórax|torax|bíceps|antebraço externo|alta das costas|ombro)/i.test(areaLabel)) s += 2;
     }
+    if (tags.vis==="alta"  && /(antebraço externo|mão|mao|pescoço|pescoco)/i.test(areaLabel)) s += 1;
+    if (tags.vis==="baixa" && /(costas|costela|coxa|peito|tórax|torax)/i.test(areaLabel)) s += 1;
+    return s;
+  }
+  function pickPlacement(basePlacements, tags, answers){
+    const prefs=(answers["areas"]||[]).map(o=>o.tags?.area).filter(a=>a && a!=="nenhuma");
+    let candidates=[...new Set([...basePlacements, ...Object.keys(AREAS_KB)])];
 
-    // 4) símbolos/values
-    if (tags.values && KB.values[tags.values]) {
-      const v = KB.values[tags.values];
-      parts.push(`e ${v.texto} (${v.toque})`);
+    if (prefs.length){
+      const preferidos = candidates.filter(c=>matchesPreference(c, prefs));
+      if (preferidos.length){
+        const seguros = preferidos.filter(c=>{
+          const meta = kbOf(c);
+          return !(meta?.pain==="alta" && tags.pain==="baixa");
+        });
+        if (seguros.length){
+          candidates = [...new Set([...seguros, ...candidates])];
+        }
+      }
     }
+    candidates.sort((a,b)=>scoreArea(b,tags,prefs)-scoreArea(a,tags,prefs));
 
-    // 5) música (toque sutil)
-    if (tags.music === "rap") {
-      parts.push("toque urbano sutil");
-    } else if (tags.music === "rock") {
-      parts.push("texturas mais cruas");
-    } else if (tags.music === "mpb") {
-      parts.push("poesia orgânica");
-    }
+    const primary=candidates[0];
+    const alts = candidates.slice(1).filter(x=>x!==primary).slice(0,2);
 
-    const frase = parts
-      .filter(Boolean)
-      .map((s,i)=> i===0 ? s[0].toUpperCase()+s.slice(1) : s)
-      .join(", ")
-      .replace(/, ([^,]+)$/, " e $1")
-      + ".";
+    const reasons=[];
+    const mPrim = kbOf(primary)||{};
+    if (prefs.length && matchesPreference(primary,prefs)) reasons.push("respeita sua preferência de área");
+    if (tags.first && mPrim?.pain==="baixa") reasons.push("conforto para primeira tatuagem");
+    if (tags.presence==="impactante") reasons.push("garante presença visual");
+    if (tags.work==="formal") reasons.push("permite maior discrição no trabalho");
 
-    // alternativas curtas
-    const alts = [];
-    if (tags.tribute === "pet") {
-      alts.push("Close PB do olhar do pet com linhas de vento");
-      alts.push("Silhueta do pet integrada a geometria minimalista");
-      alts.push("Nome/data do pet em realismo suave");
-    } else if (tags.tribute === "pessoa") {
-      alts.push("Close PB com foco em luz & sombra");
-      alts.push("Silhueta com geometria discreta");
-      alts.push("Inicial/data como assinatura afetiva");
-    } else {
-      alts.push("Estudo de luz & sombra com foco no motivo central");
-      alts.push("Composição com geometria discreta como moldura");
-      alts.push("Ícone afetivo em realismo PB minimalista");
-    }
-    return { frase, alts: alts.slice(0,3) };
+    return {primary, alts, reasons};
   }
 
   // ===== SERIALIZAÇÃO =====
@@ -425,39 +499,30 @@
     const s = JSON.stringify(obj || {});
     let h = 0;
     for(let i=0;i<s.length;i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
-    return `${prefix}:${h}`;
+    return prefix + ":" + h;
   }
 
-  // cria TODAS as colunas planas para o CSV
   function flattenAllForFormspree(REC, RAW){
     const flat = {
-      // resumo
       theme: (REC.themes && REC.themes[0]) || "",
       alt_themes: (REC.themes || []).slice(1,4).join(" | "),
       placement: REC.placement || "",
-      placement_alt1: REC.placementAlts && REC.placementAlts[0] || "",
-      placement_alt2: REC.placementAlts && REC.placementAlts[1] || "",
+      placement_alt1: (REC.placementAlts && REC.placementAlts[0]) || "",
+      placement_alt2: (REC.placementAlts && REC.placementAlts[1]) || "",
       sizeLabel: REC.sizeLabel || "",
       sizeCm: REC.sizeCm || "",
       persona: REC.persona || "",
       hoursEstimate: REC.hours || "",
       priceEstimate: REC.priceEstimate || "",
       tema_principal: REC.temaPrincipal || "",
-      alternativas_txt: (REC.alternativasTxt || [])
-        ? (Array.isArray(REC.alternativasTxt) ? REC.alternativasTxt.join(" | ") : String(REC.alternativasTxt))
-        : ""
+      alternativas_txt: Array.isArray(REC.alternativasTxt) ? REC.alternativasTxt.join(" | ") : (REC.alternativasTxt || "")
     };
-
-    // 1) labels/textos de cada pergunta
     Object.keys(RAW||{}).forEach(k=>{
       if(!k.endsWith("_tags")) flat["q_"+k] = RAW[k];
     });
-
-    // 2) tags (objetos e arrays) -> tag_<chave>=valor
     Object.entries(RAW||{}).forEach(([k,v])=>{
       if(!k.endsWith("_tags")) return;
       if(Array.isArray(v)){
-        // ex.: areas_tags = [{area:"braco"}, {area:"perna"}]
         const codes = [];
         v.forEach(obj=>{
           Object.entries(obj||{}).forEach(([kk,vv])=>{
@@ -466,7 +531,6 @@
         });
         if(codes.length){
           flat["tag_areas"] = codes.join(" | ");
-          // colunas booleanas por área
           const ALL = ["braco","perna","costas","peito","costela","mao","pescoco","nenhuma"];
           ALL.forEach(a=>{ flat["area_"+a] = codes.includes(a) ? 1 : ""; });
         }
@@ -476,34 +540,30 @@
         });
       }
     });
-
-    // 3) cópia direta de tags importantes do REC (garantia)
     const rt = REC.tags || {};
     ["motive","universe","vis","work","pain","session","day","period","budgetMin","budgetMax","tribute","presence","astro","values","music","first","volu","prefStyle"]
       .forEach(k=>{
         if(flat["tag_"+k]==null && rt[k]!=null) flat["tag_"+k]=rt[k];
       });
-
     return flat;
   }
 
   function sendPayload(data){
     const endpoint = FORMSPREE_ENDPOINT || "https://formspree.io/f/mvgblrjq";
     if(!endpoint) return;
-
     const flat = flattenAllForFormspree(data.resumo || {}, data.respostas || {});
     fetch(endpoint,{
       method:"POST",
       headers:{"Content-Type":"application/json","Accept":"application/json"},
       body:JSON.stringify({
         ts:new Date().toISOString(),
-        ...data,   // mantém JSON completo
-        ...flat    // adiciona TODAS as colunas simples
+        ...data,
+        ...flat
       })
     }).catch(()=>{});
   }
 
-  // ===== UI =====
+  // ===== UI FLOW =====
   const app=document.getElementById("app");
   let step=0;
   const answers={};
@@ -527,38 +587,43 @@
     if(tags.tribute==="pet")    themes.unshift("retrato do seu pet");
     if(tags.tribute==="fe")     themes.unshift("símbolo de fé/proteção");
 
-    // locais
+    // locais base por visibilidade
     let visKey=tags.vis||"media";
-    let placements=[...(PLACEMENTS[visKey]||PLACEMENTS.media)];
-    if(tags.first) placements=["antebraço interno","panturrilha","ombro",...placements];
-    if(tags.volu==="alta") placements=[...LESS_SEEN,...placements];
-    if(tags.work==="formal" && visKey!=="baixa") placements=[...LESS_SEEN,...PLACEMENTS.baixa];
-    if(tags.pain==="baixa") placements=[...placements.filter(p=>LOW_PAIN.some(lp=>p.includes(lp))),...placements];
+    let basePlacements=[...(PLACEMENTS[visKey]||PLACEMENTS.media)];
+    if(tags.first) basePlacements=["antebraço interno","panturrilha","ombro",...basePlacements];
+    if(tags.volu==="alta") basePlacements=[...LESS_SEEN,...basePlacements];
+    if(tags.work==="formal" && visKey!=="baixa") basePlacements=[...LESS_SEEN,...PLACEMENTS.baixa];
+    if(tags.pain==="baixa") basePlacements=[...basePlacements.filter(p=>LOW_PAIN.some(lp=>p.includes(lp))),...basePlacements];
 
-    const areas=(ans["areas"]||[]).map(o=>o.tags?.area);
-    if(areas.length && !areas.includes("nenhuma")){
-      const map={ braco:["antebraço","bíceps","ombro"], perna:["coxa","panturrilha"], costas:["costas"],
-                  peito:["peito","tórax"], costela:["costela","lateral"], mao:["mão","punho"], pescoco:["pescoço"] };
-      const filtered = placements.filter(p=>areas.some(a=>(map[a]||[]).some(kw=>p.includes(kw))));
-      if(filtered.length) placements = filtered;
-    }
+    // seleção com pontuação (prioriza Q12 quando seguro)
+    const picked = pickPlacement(basePlacements, tags, ans);
 
     // tamanho/orçamento
     const inv=ans["investimento"]?.tags || {budgetMin:600,budgetMax:1200};
-    const hours=hoursFromBudget(inv.budgetMin,inv.budgetMax);
+    let hours=hoursFromBudget(inv.budgetMin,inv.budgetMax);
     const multi=ans["tempoSessao"]?.tags?.session==="multi" || inv.budgetMin>=2500;
-    const size=sizeFromTime(hours,multi);
+    let size=sizeFromTime(hours,multi);
+
+    // cap suave para primeira tatuagem
+    if (tags.first && size.size==="grande"){
+      const wantsImpact = tags.presence==="impactante";
+      const longSession = ans["tempoSessao"]?.label?.includes("5–6h") || ans["tempoSessao"]?.tags?.session==="longa" || ans["tempoSessao"]?.tags?.session==="multi";
+      if (!(wantsImpact && longSession)) {
+        size = {size:"medio", label:"Médio"};
+        const MAX_H_MEDIO = 4;
+        if (hours > MAX_H_MEDIO) hours = MAX_H_MEDIO;
+      }
+    }
+
     const cm = SIZE_CM[size.size];
     const priceEstimate = Math.round(hours * HOURLY);
 
-    // justificativa
+    // justificativa (inclui razões do picker)
     const just = [];
-    if(tags.first) just.push("boa escolha para primeira tatuagem");
-    if(tags.pain==="baixa") just.push("região de menor sensibilidade");
-    if(tags.work==="formal") just.push("ajuda a manter discrição no trabalho");
-    if(tags.volu==="alta")  just.push("fica fora do campo de visão constante");
-    if(tags.vis==="alta")   just.push("boa visibilidade no dia a dia");
-    if(tags.presence==="impactante") just.push("garante presença visual");
+    picked.reasons.forEach(r=>just.push(r));
+    if(tags.pain==="baixa") just.push("buscamos região de menor sensibilidade");
+    if(tags.work==="formal") just.push("considera discrição no trabalho");
+    if(tags.volu==="alta")  just.push("evita ficar no campo de visão constante");
     const justification = `${just.length? just.join(" · "):"equilíbrio entre conforto e estética"} — tamanho aproximado ${cm} (${size.label}).`;
 
     const inspiration = buildInspiration(tags);
@@ -566,9 +631,9 @@
     return {
       persona,
       themes:[...new Set(themes)].slice(0,4),
-      placementsAll: placements,
-      placementPrimary: placements[0] || "antebraço interno",
-      placementAlts: (placements.slice(1,3) || []),
+      placementsAll: [picked.primary, ...picked.alts],
+      placementPrimary: picked.primary || "antebraço interno",
+      placementAlts: picked.alts || [],
       sizeLabel:size.label,
       sizeCm:cm,
       hours,
@@ -588,10 +653,9 @@
     const r = recommend(answers);
     const nome = (answers.nome?.value||"Você");
 
-    // texto coeso do tema
     const wording = composeThemeText(r.tags);
     const temaPrincipal = wording.frase;
-    const alternativasTema = wording.alts; // array de 3 curtas
+    const alternativasTema = wording.alts;
     const alternativasTemaTxt = alternativasTema.join(" · ");
 
     const RAW_OBJ = serializeAnswersForSubmit(Q, answers);
@@ -611,7 +675,7 @@
       alternativasTxt: alternativasTema
     };
 
-    // >>> Envio automático com dedupe (localStorage) + flatten
+    // envio automático com dedupe
     const autoKey = makeKey("auto", {REC_OBJ, RAW_OBJ});
     if (!lsGet(autoKey)) {
       sendPayload({
@@ -627,7 +691,7 @@
 
     const altLocais = (r.placementAlts||[]).join(" · ");
     const tamanhoLinha = `${r.sizeLabel} — ${r.sizeCm} — estimado R$ ${r.priceEstimate.toLocaleString("pt-BR")} (~${r.hours}h)`;
-    const txtResumo = `${nome} — Tema: ${temaPrincipal} | Local: ${r.placementPrimary}${r.placementAlts[0]?(" ("+r.placementAlts[0]+")"):""} | Tamanho: ${r.sizeLabel} (${r.sizeCm}) | Estimado: R$ ${r.priceEstimate.toLocaleString("pt-BR")}`;
+    const txtResumo = `${nome} — Tema: ${temaPrincipal} | Local: ${r.placementPrimary}${r.placementAlts && r.placementAlts[0] ? (" ("+r.placementAlts[0]+")"):""} | Tamanho: ${r.sizeLabel} (${r.sizeCm}) | Estimado: R$ ${r.priceEstimate.toLocaleString("pt-BR")}`;
 
     const html =
 `<!doctype html><html lang="pt-br"><head>
@@ -672,196 +736,4 @@
       <div style="font-size:16px;margin-top:4px">${r.inspiration}</div>` : ""}
 
     <div class="row row2" style="margin-top:14px">
-      <a class="btn" href="https://wa.me/5534999199962" target="_blank" rel="noreferrer noopener">Quero conversar sobre minha ideia no WhatsApp</a>
-      <button class="btn" id="copy">Copiar sugestão</button>
-    </div>
-
-    <div class="card" style="margin-top:14px;border-color:#efefef">
-      <div><strong>Quer receber inspirações de desenhos</strong>? Deixe seu WhatsApp ou e-mail.
-        <em>É só para inspirar, sem compromisso.</em></div>
-      <div class="row" style="margin-top:8px">
-        <input id="lead" type="text" placeholder="(DDD) WhatsApp ou e-mail"/>
-        <button class="btn" id="send">Quero receber inspirações</button>
-      </div>
-      <div class="muted" style="margin-top:6px">Sem spam. Só inspirações úteis.</div>
-    </div>
-  </div>
-</div>
-<scr` + `ipt>
-  const RAW = ${safeJSON(RAW_OBJ)};
-  const REC = ${safeJSON(REC_OBJ)};
-  const txt = ${JSON.stringify(txtResumo)};
-
-  document.getElementById("copy").addEventListener("click", ()=>navigator.clipboard.writeText(txt).then(()=>alert("Sugestão copiada!")).catch(()=>alert("Copie manualmente: "+txt)));
-
-  // --- util para dedupe no popup ---
-  function lsGet(k){ try{return localStorage.getItem(k);}catch(e){return null;} }
-  function lsSet(k,v){ try{localStorage.setItem(k,v);}catch(e){} }
-  function makeKey(prefix, obj){
-    const s = JSON.stringify(obj || {});
-    let h = 0;
-    for (let i=0; i<s.length; i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
-    return \`\${prefix}:\${h}\`;
-  }
-
-  const endpoint = "https://formspree.io/f/mvgblrjq";
-  const btn = document.getElementById("send");
-  let sending = false, sent = false;
-
-  btn.addEventListener("click", async ()=>{
-    if (sending || sent) return;
-
-    const contato = (document.getElementById("lead").value||'').trim();
-    if(!contato){ alert("Preencha seu WhatsApp ou e-mail."); return; }
-
-    // chave de dedupe: contato + contexto
-    const leadKey = makeKey("lead", {contato, REC, RAW});
-    if (lsGet(leadKey)) {
-      alert("Esse contato já foi registrado para esta sugestão. Obrigado! 💚");
-      return;
-    }
-
-    const oldTxt = btn.textContent;
-    sending = true;
-    btn.disabled = true;
-    btn.textContent = "Enviando...";
-
-    try{
-      // flatten extra já acontece no servidor (via sendPayload da página principal).
-      // Aqui enviamos também os campos principais para facilitar.
-      await fetch(endpoint,{
-        method:"POST",
-        headers:{"Content-Type":"application/json","Accept":"application/json"},
-        body:JSON.stringify({
-          ts: new Date().toISOString(),
-          source: "lead",
-          contato,
-          resumo: REC,
-          respostas: RAW,
-          ua: navigator.userAgent,
-          tema_principal: REC.temaPrincipal || "",
-          alternativas_txt: Array.isArray(REC.alternativasTxt)? REC.alternativasTxt.join(" | ") : (REC.alternativasTxt || ""),
-          placement: REC.placement,
-          placement_alt1: (REC.placementAlts && REC.placementAlts[0]) || "",
-          placement_alt2: (REC.placementAlts && REC.placementAlts[1]) || "",
-          sizeLabel: REC.sizeLabel,
-          sizeCm: REC.sizeCm,
-          hoursEstimate: REC.hours,
-          priceEstimate: REC.priceEstimate
-        })
-      });
-      lsSet(leadKey,"1");
-      sent = true;
-      btn.textContent = "Enviado ✅";
-      document.getElementById("lead").value="";
-      alert("Contato registrado! Você receberá inspirações ✨");
-    }catch(e){
-      btn.disabled = false;
-      btn.textContent = oldTxt;
-      sending = false;
-      alert("Não foi possível enviar agora. Tente novamente.");
-    }
-  });
-</scr` + `ipt>
-</body></html>`;
-
-    let w = window.open("", "_blank");
-    if (w && w.document) {
-      w.document.open(); w.document.write(html); w.document.close();
-    } else {
-      const blob = new Blob([html], {type:"text/html"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.target = "_blank";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-  }
-
-  function render(){
-    app.innerHTML="";
-    const q=Q[step];
-
-    const prog=el("div",{class:"prog"}, el("i",{style:`width:${Math.round(((step+1)/total)*100)}%`}));
-
-    const card=el("div",{class:"card"},
-      el("div",{class:"title"}, q.t),
-      q.helper?el("div",{class:"muted"}, q.helper):null,
-    );
-
-    if(q.type==="text"){
-      const input=el("input",{type:"text",placeholder:q.ph||"",value:answers[q.id]?.value||""});
-      input.addEventListener("input", ()=> answers[q.id]={value:input.value,tags:{}});
-      const actions=el("div",{class:"actions"},
-        el("button",{class:"btn",onClick:()=>{step=Math.max(0,step-1);render();}}, "Voltar"),
-        el("button",{class:"btn primary",onClick:()=>{
-          if(q.req && !input.value.trim()){ alert("Digite seu nome"); return; }
-          if(input.value.trim()) answers[q.id]={value:input.value.trim(),tags:{}};
-          if(step === total-1){ finishOnce(); return; }
-          step=Math.min(total-1,step+1); render();
-        }},"Avançar"),
-      );
-      card.append(el("div",{class:"row"},input), actions);
-
-    } else if(q.type==="single"){
-      const selected = answers[q.id]?.__chosen ?? null;
-      const list=el("div",{class:"row row2"});
-      q.options.forEach((opt,idx)=>{
-        const isSel = selected===idx;
-        list.appendChild(
-          el("button",{
-            class:"btn"+(isSel?" sel":""),
-            "aria-pressed": String(!!isSel),
-            onClick:()=>{ answers[q.id]={...opt,__chosen:idx}; render(); }
-          }, opt.label)
-        );
-      });
-      const canNext = answers[q.id] && answers[q.id].__chosen != null;
-      const actions=el("div",{class:"actions"},
-        el("button",{class:"btn",onClick:()=>{step=Math.max(0,step-1);render();}}, "Voltar"),
-        el("button",{class:"btn primary",disabled:!canNext,onClick:()=>{
-          if(!canNext) return;
-          if(step === total-1){ finishOnce(); return; }
-          step=Math.min(total-1,step+1);
-          render();
-        }}, "Avançar")
-      );
-      card.append(list, actions);
-
-    } else if(q.type==="multi"){
-      const current = Array.isArray(answers[q.id])?answers[q.id]:[];
-      const list=el("div",{class:"row row2"});
-      q.options.forEach(opt=>{
-        const sel = current.find(o=>o.label===opt.label);
-        const isSel = !!sel;
-        list.appendChild(el("button",{
-          class:"btn"+(isSel?" sel":""),
-          "aria-pressed": String(isSel),
-          onClick:()=>{
-            const arr=Array.isArray(answers[q.id])?[...answers[q.id]]:[];
-            const i=arr.findIndex(o=>o.label===opt.label);
-            if(i>=0) arr.splice(i,1); else arr.push(opt);
-            answers[q.id]=arr; render();
-          }}, opt.label));
-      });
-      const actions=el("div",{class:"actions"},
-        el("button",{class:"btn",onClick:()=>{step=Math.max(0,step-1);render();}}, "Voltar"),
-        el("button",{class:"btn primary",onClick:()=>{
-          if(step === total-1){ finishOnce(); return; }
-          step=Math.min(total-1,step+1); render();
-        }}, "Avançar"),
-      );
-      card.append(list,actions);
-    }
-
-    app.append(prog,card);
-  }
-
-  document.getElementById("year").textContent=new Date().getFullYear();
-  render();
-})();
-</script>
-</body>
-</html>
+      <a class="btn" href="https://
