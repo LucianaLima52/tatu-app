@@ -333,7 +333,7 @@
     });
     return out;
   }
-  // evitar </script> em strings
+  // ATENÇÃO: não usar a palavra de fechamento da tag <scr + ipt> em comentários/strings
   const safeJSON = (obj)=> JSON.stringify(obj).replace(/</g, '\\u003C');
 
   // ===== ENVIOS =====
