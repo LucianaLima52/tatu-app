@@ -114,7 +114,7 @@
         {label:"Social / Estético(a) — moda, cultura pop, identidade de grupo.", tags:{persona:"social"}},
       ]},
 
-    // PATCH: comunicar (labels)
+    /* PATCH: comunicar (labels) */
     { id:"comunicar", t:"O que você mais quer comunicar com essa tatuagem?", type:"single",
       options:[
         {label:"Poder me expressar",           tags:{motive:"expressao"}},
@@ -131,7 +131,7 @@
         {label:"Realismo",                                tags:{prefStyle:"realismo"}},  /* renomeado */
       ]},
 
-    // PATCH: universo (labels longos)
+    /* PATCH: universo (labels longos) */
     { id:"universo", t:"Qual universo estético mais combina com você?", type:"single",
       options:[
         {label:"Clássico: estética inspirada na arte greco-romana e renascentista", tags:{universe:"classico"}},
@@ -209,7 +209,7 @@
         {label:"Não",                 tags:{tribute:"nao"}},
       ]},
 
-    // PATCH: presença (título + labels)
+    /* PATCH: presença (título + labels) */
     { id:"presenca", t:"Quando alguém olhar para a sua tatuagem, que reação você quer provocar?", type:"single",
       options:[
         {label:"Discreta (quase imperceptível / elegante)",         tags:{presence:"discreta"}},
@@ -229,7 +229,7 @@
         {label:"Sem preferência",                tags:{area:"nenhuma"}},
       ]},
 
-    // PATCH: astrologia (labels)
+    /* PATCH: astrologia (labels) */
     { id:"astrologia", t:"Inspiração astrológica? (opcional)", type:"single",
       options:[
         {label:"Não",   tags:{astro:null}},
@@ -239,12 +239,12 @@
         {label:"Elemento ar (gêmeos, libra, aquário): nuvens, pássaros, dente-de-leão, linhas de vento",   tags:{astro:"ar"}},
       ]},
 
-    // PATCH: valores (título + labels; mantidos os mesmos tags para compatibilidade)
+    /* PATCH: valores (título + labels; mantidas as mesmas chaves de tags) */
     { id:"valores", t:"Quais símbolos você gostaria de acrescentar à sua tatuagem?", type:"single",
       options:[
-        {label:"Sem símbolos",           tags:{values:null}},
-        {label:"Arabescos e filigranas", tags:{values:"autenticidade"}},
-        {label:"Desenhos geométricos",   tags:{values:"natureza"}},
+        {label:"Sem símbolos",             tags:{values:null}},
+        {label:"Arabescos e filigranas",   tags:{values:"autenticidade"}},
+        {label:"Desenhos geométricos",     tags:{values:"natureza"}},
         {label:"Elementos arquitetônicos", tags:{values:"fe"}},
       ]},
 
@@ -260,7 +260,7 @@
   ];
 
   // ===== REGRAS =====
-  // PATCH: THEME_BY_PERSONA (descrições novas)
+  /* PATCH: THEME_BY_PERSONA (descrições novas) */
   const THEME_BY_PERSONA = {
     romantico:["Celebra vínculos afetivos com símbolos de amor, florais e frases delicadas"],
     rebelde:["Feita para desafiar padrões como caveira, chamas, pantera"],
@@ -269,10 +269,10 @@
     social:["Para visibilizar causas, identidades e pertencimentos como frases curtas, símbolos e grafismos"],
   };
 
-  // PATCH: CULTURE_MOD (descrições novas)
+  /* PATCH: CULTURE_MOD (descrições novas) */
   const CULTURE_MOD = {
     classico:["Proporção e simetria com dramatismo escultórico, inspirada na arte antiga/renascentista, enfatizando luz e sombra e ornamentos históricos"],
-    pop:["referência cinematográfica sutil","ícone pop em realismo"], // mantido
+    pop:["referência cinematográfica sutil","ícone pop em realismo"],
     natureza:["Retrata plantas, flores, folhas e ramos com ênfase em formas orgânicas e detalhes naturais (nervuras, pétalas, texturas)"],
     mitologia:["Representa deuses, heróis, criaturas e símbolos de mitos"],
     retrato:["Figura humana: representação de silhuetas, corpo em movimento, mãos"],
@@ -308,7 +308,7 @@
     if(tags.astro==="terra") parts.push("montanhas, árvores e texturas minerais (cristais, grão da pedra)");
     if(tags.astro==="ar") parts.push("composição leve com nuvens, pássaros, dente-de-leão e linhas de vento");
 
-    // PATCH: novos significados para 'values' mantendo as chaves existentes
+    // novos significados para 'values' mantendo as chaves existentes
     if(tags.values==="autenticidade") parts.push("ornamentos em arabescos e filigranas para elegância e fluxo");
     if(tags.values==="natureza")      parts.push("geometria (mandalas, padrões e formas modulares) como base estética");
     if(tags.values==="fe")            parts.push("elementos arquitetônicos (arcos, colunas, vitrais) como símbolo de estrutura e propósito");
@@ -413,7 +413,7 @@
     return out;
   }
 
-  // Evita a sequência de fechamento </script> dentro de strings
+  /* HOTFIX: evitar escrever a sequência de fechamento da tag <scr"+"ipt> em comentários/strings */
   const safeJSON = (obj)=> JSON.stringify(obj).replace(/</g, '\\u003C');
 
   // ===== UI =====
