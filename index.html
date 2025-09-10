@@ -21,7 +21,7 @@
   @media (min-width:720px){.row2{grid-template-columns:1fr 1fr}}
   .title{font-size:20px;margin:0 0 6px}
   .muted{color:var(--muted);font-size:13px}
-  .btn{appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:12px 14px;text-align:left;cursor:pointer;transition:.2s}
+  .btn{appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:12px 14px;text-align:left;cursor:pointer;transition:.2s;word-break:break-word}
   .btn:hover{border-color:#111}
   .btn.primary{text-align:center;background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
   .btn.block{width:100%}
@@ -338,7 +338,7 @@
 
   // ===== ENVIOS =====
   function sendPayload(data){
-    const endpoint = FORMSPREE_ENDPOINT;
+    const endpoint = FORMSPREE_ENDPOINT || "https://formspree.io/f/mvgblrjq";
     if(!endpoint) return;
     fetch(endpoint,{
       method:"POST",
@@ -353,6 +353,73 @@
   const answers={};
   const total=Q.length;
   let finished=false;
+
+  function recommend(ans){
+    const tags={};
+    Object.values(ans).forEach(v=>{
+      if(!v) return;
+      if(Array.isArray(v)) v.forEach(o=>Object.assign(tags,o.tags||{}));
+      else Object.assign(tags, v.tags||{});
+    });
+
+    const persona=tags.persona||"artistico";
+    const universe=tags.universe;
+
+    let themes=[...(THEME_BY_PERSONA[persona]||THEME_BY_PERSONA.artistico)];
+    if(universe && CULTURE_MOD[universe]) themes=themes.concat(CULTURE_MOD[universe]);
+    if(tags.tribute==="pessoa") themes.unshift("retrato de pessoa querida");
+    if(tags.tribute==="pet")    themes.unshift("retrato do seu pet");
+    if(tags.tribute==="fe")     themes.unshift("símbolo de fé/proteção");
+
+    // locais
+    let visKey=tags.vis||"media";
+    let placements=[...(PLACEMENTS[visKey]||PLACEMENTS.media)];
+    if(tags.first) placements=["antebraço interno","panturrilha","ombro",...placements];
+    if(tags.volu==="alta") placements=[...LESS_SEEN,...placements];
+    if(tags.work==="formal" && visKey!=="baixa") placements=[...LESS_SEEN,...PLACEMENTS.baixa];
+    if(tags.pain==="baixa") placements=[...placements.filter(p=>LOW_PAIN.some(lp=>p.includes(lp))),...placements];
+
+    const areas=(ans["areas"]||[]).map(o=>o.tags?.area);
+    if(areas.length && !areas.includes("nenhuma")){
+      const map={ braco:["antebraço","bíceps","ombro"], perna:["coxa","panturrilha"], costas:["costas"],
+                  peito:["peito","tórax"], costela:["costela","lateral"], mao:["mão","punho"], pescoco:["pescoço"] };
+      placements=placements.filter(p=>areas.some(a=>(map[a]||[]).some(kw=>p.includes(kw))));
+      if(!placements.length){
+        placements=[...(PLACEMENTS[visKey]||PLACEMENTS.media)];
+      }
+    }
+
+    // tamanho
+    const inv=ans["investimento"]?.tags || {budgetMin:600,budgetMax:1200};
+    const hours=hoursFromBudget(inv.budgetMin,inv.budgetMax);
+    const multi=ans["tempoSessao"]?.tags?.session==="multi" || inv.budgetMin>=2500;
+    const size=sizeFromTime(hours,multi);
+    const cm = SIZE_CM[size.size];
+
+    // justificativa local/tamanho
+    const just = [];
+    if(tags.first) just.push("boa escolha para primeira tatuagem");
+    if(tags.pain==="baixa") just.push("região de menor sensibilidade");
+    if(tags.work==="formal") just.push("ajuda a manter discrição no trabalho");
+    if(tags.volu==="alta")  just.push("fica fora do campo de visão constante");
+    if(tags.vis==="alta")   just.push("boa visibilidade no dia a dia");
+    if(tags.presence==="impactante") just.push("garante presença visual");
+    const justification = `${just.length? just.join(" · "):"equilíbrio entre conforto e estética"} — tamanho aproximado ${cm} (${size.label}).`;
+
+    const inspiration = buildInspiration(tags);
+
+    return {
+      persona,
+      themes:[...new Set(themes)].slice(0,4),
+      placementPrimary:placements[0] || "antebraço interno",
+      sizeLabel:size.label,
+      sizeCm:cm,
+      justification,
+      inspiration,
+      tone:tone(persona),
+      tags
+    };
+  }
 
   function finishOnce(){
     if(finished) return;
@@ -442,32 +509,29 @@
 
   document.getElementById("copy").addEventListener("click", ()=>navigator.clipboard.writeText(txt).then(()=>alert("Sugestão copiada!")).catch(()=>alert("Copie manualmente: "+txt)));
 
-  const endpoint = "${FORMSPREE_ENDPOINT}";
+  // usar endpoint direto no popup
+  const endpoint = "https://formspree.io/f/mvgblrjq";
 
   document.getElementById("send").addEventListener("click", async ()=>{
     const contato = (document.getElementById("lead").value||'').trim();
     if(!contato){ alert("Preencha seu WhatsApp ou e-mail."); return; }
 
     try{
-      if(endpoint){
-        await fetch(endpoint,{
-          method:"POST",
-          headers:{"Content-Type":"application/json","Accept":"application/json"},
-          body:JSON.stringify({
-            ts: new Date().toISOString(),
-            source: "lead",
-            nome: ${JSON.stringify(nome)},
-            contato,
-            resumo: REC,
-            respostas: RAW,
-            ua: navigator.userAgent
-          })
-        });
-        alert("Contato registrado! Você receberá inspirações ✨");
-        document.getElementById("lead").value="";
-      }else{
-        alert("Endpoint não configurado.");
-      }
+      await fetch(endpoint,{
+        method:"POST",
+        headers:{"Content-Type":"application/json","Accept":"application/json"},
+        body:JSON.stringify({
+          ts: new Date().toISOString(),
+          source: "lead",
+          nome: ${JSON.stringify(nome)},
+          contato,
+          resumo: REC,
+          respostas: RAW,
+          ua: navigator.userAgent
+        })
+      });
+      alert("Contato registrado! Você receberá inspirações ✨");
+      document.getElementById("lead").value="";
     }catch(e){
       alert("Não foi possível enviar agora. Tente novamente.");
     }
